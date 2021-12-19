@@ -1,0 +1,78 @@
+Studying some simpler Versions of the problem
+
+
+Version 1.0:    Buy only once
+
+                We can use maximum difference between two elements approach
+                a) if ith day is the selling day, we can keep track of the minimum element encountered till that day
+                b) if ith day is the buying day, we can keep track of the max element after that day
+                c) we can find the difference array of size n-1 of adj elements and find the maximum sum subarray in that
+
+
+Version 1.1:    Make at most two transactions
+
+                a) Simple Solution: Consider every index i and find the max profit by
+                                    doing one transaction in the arr A[...i] and other one
+                                    in the array A[i+1...]   * Complexity: O(n^2)
+
+                b) Better Solution: Rather than calculating the max profit by one transaction
+                                    in A[i+1...] and A[...i] we can precalculate those and
+                                    store them in some array
+
+
+STRUCTURE:
+
+1. Sub-Problems:
+        given an array starting from some index i,
+        and I can make at most x transactions
+        what is the max profit which I can get
+2. Guesses:
+        I have an array starting form ith index
+        Now, the element at the ith index will be a
+        part of some transaction or it will not be
+
+3. Expressions:
+        profit[i][k] = for j from i+1 to n {
+            max(profit[i+1][k], price[j] - price[i] + profit[j+1][k-1])
+        }
+
+        NOTE: Complexity of above code
+        O(N*K) = # sub-problems
+        O(N) = time per sub-problem
+        Total time = O(N^2*K)
+
+        ------------------OPTIMISATION-------------------
+
+        In the above relation everything is constant except
+        max(price[j] + profit[j+1][k-1])
+        for any i and k, this thing is depending on the future values of profit and price
+        so this can be stored somewhere which will provide us a constant excess of this
+        thing.
+
+
+        Base Cases:
+                a) if (k == 0) profit[i][0] = 0
+                b) if (i == len(A)) profit[len(A)][k] = 0
+
+
+CODE:
+
+    int maxProfit(int K, int N, int price[]) {
+        // code here
+
+        vector<vector<int>> dp(N+1, vector<int>(K+1, 0));
+        for (int k=1;k<=K;k++){
+            int prev = 0;
+            for (int i=N-1;i>=0;i--){
+                dp[i][k] = max(dp[i+1][k], -price[i] + prev);
+                prev = max(prev, price[i]+dp[i+1][k-1]);
+            }
+        }
+        return dp[0][K];
+
+    }
+
+
+
+
+

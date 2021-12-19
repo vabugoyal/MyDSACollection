@@ -1,0 +1,44 @@
+Structure
+
+1. Sub-Problems:
+        total number of ways in which n friends can be
+        paired up or can remain single
+2. Guesses:
+    Try to make guesses about a single thing or element otherwise
+    it will lead to double counting
+    Right:
+        either the first person of that group will remain
+        single or he will be a part of some pair
+                        or
+    Wrong:
+        either I will get a pair from that group or I won't
+        dp[n] = nC2*dp[n-2] + 1
+        * This will lead to double counting of the sub-problems
+
+3. Relating Sub-problems:
+        dp[n] = dp[n-1] + (n-1)dp[n-2]
+                remain     part of some pair
+                single
+
+
+
+    int countFriendsPairings(int n)
+    {
+        // code here
+        if (n == 1) {
+            return 1;
+        } if (n == 2) {
+            return 2;
+        }
+
+        long long a = 1;
+        long long b = 2;
+        long long mod = 1e9+7;
+        for(int i=3;i<=n;i++){
+            long long temp = b;
+            b = (b + (i-1)*a) % mod;
+            a = temp;
+        }
+
+        return b;
+    }

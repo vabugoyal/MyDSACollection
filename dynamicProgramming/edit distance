@@ -1,0 +1,45 @@
+Structure
+
+1. Subproblems:
+        Given index i in s
+        Given index j in s
+        min steps to make the strings s[i:] == j[j:]
+2. Guess:
+        // which subproblems will I need to
+           find the solution to this (min steps to make the strings s[i:] == j[j:]) problem
+           Since, I can perform 3 operations
+           So, after performing an operation to which subproblem I go
+3. Relating the subproblems
+        It is about finding which subproblems gives the min ans
+        to the current problem
+4. Returning the solution to the original problem
+        returning dp[0][0]
+
+
+    int editDistance(string s, string t) {
+
+        int n1 = s.size(), n2 = t.size();
+        vector<vector<int>> dp(n1+1, vector<int> (n2+1, 0));
+        for(int i=0;i<n2;i++){
+            dp[n1][i] = n2 - i;
+        }
+        for(int i=0;i<n1;i++){
+            dp[i][n2] = n1 - i;
+        }
+        for(int i=n1-1;i>=0;i--){
+            for (int j=n2-1;j>=0;j--){
+                if (s[i] == t[j]){
+                    dp[i][j] = dp[i+1][j+1];
+                }
+                else {
+                    dp[i][j] = min({dp[i][j+1], dp[i+1][j], dp[i+1][j+1]}) + 1;
+                }
+            }
+        }
+
+
+        return dp[0][0];
+
+    }
+
+

@@ -1,0 +1,40 @@
+STRUCTURE:
+
+1. Sub-problems:
+        given an array starting from ith index,
+        tell me if it is possible to reach the end of
+        the array
+2. Guesses:
+        at ith index I can take a[i] steps
+        I will guess that i or i+1 or ... or i+a[i]
+        for giving me the maximum reach
+
+CODE:
+
+    int minJumps(int arr[], int n){
+        // Your code here
+        if (n == 1){
+            return 0;
+        }
+        int reach = 0;
+        int i=0;
+        int jumps = 0;
+        while(i < n){
+            int nextReach = i;
+            while(i <= reach){
+                if (i == n-1){
+                    return jumps;
+                }
+                nextReach = max(nextReach, i + arr[i]);
+                i++;
+            }
+            jumps++;
+            if (nextReach <= reach){
+                return -1;
+            } else {
+                reach = nextReach;
+            }
+        }
+    }
+
+

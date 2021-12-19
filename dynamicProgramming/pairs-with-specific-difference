@@ -1,0 +1,45 @@
+STRUCTURE:
+
+1. Sub-problems:
+        we will consider the sorted version of the array
+        given the starting index of the array
+        tell me the max sum of pairs possible
+
+2. Guesses:
+        I have an array starting from ith index
+        if ls[i+1]-ls[i] > k {
+            dp[i] = dp[i+1]
+        }
+        else {
+            dp[i] = max(ls[i]+ls[i+1]+dp[i+2], dp[i+1])
+        }
+
+        Why at the ith index we are considering only the pair (i, i+1)?
+
+        because if ith is paired with j where
+        j is i....j....n-1, then it would have already been paired
+        with some of .... b/w i and j, thus the only element left
+        for i is i+1 as there are no elements b/w i and i+1.
+
+CODE:
+
+    public:
+        int maxSumPairWithDifferenceLessThanK(int arr[], int n, int k)
+        {
+            // Your code goes here
+            if (n == 1){
+                // no pairs can be made
+                return 0;
+            }
+            sort(arr, arr+n);
+            vector<int> dp(n+1, 0);
+            for(int i=n-2;i>=0;i--){
+                if (arr[i+1]-arr[i] >= k){
+                    dp[i] = dp[i+1];
+                } else {
+                    dp[i] = max(arr[i]+arr[i+1]+dp[i+2], dp[i+1]);
+                }
+            }
+
+            return dp[0];
+        }

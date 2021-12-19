@@ -1,0 +1,28 @@
+STRUCTURE
+
+1. sub-problems:
+        given the length of the segment in how many ways can
+        I cut it
+2. Guesses:
+        Since, I don't know which one will give the
+        max number of peices so I will try all of them
+3. Relating Sub-problems:
+        dp[n] = max(dp[n-x] , dp[n-y] , d[n-z])
+
+
+    //Function to find the maximum number of cuts.
+    int maximizeTheCuts(int n, int x, int y, int z)
+    {
+        vector<int> dp(n+1, 0);
+        dp[0] = 1;
+        for(int i=1;i<=n;i++){
+            int ans = 0;
+            if (i-x >= 0 and dp[i-x] > 0) ans = max(ans, dp[i-x] + 1);
+            if (i-y >= 0 and dp[i-y] > 0) ans = max(ans, dp[i-y] + 1);
+            if (i-z >= 0 and dp[i-z] > 0) ans = max(ans, dp[i-z] + 1);
+            dp[i] = ans;
+        }
+
+        return max(0, dp[n] - 1);
+    }
+};

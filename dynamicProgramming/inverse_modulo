@@ -1,0 +1,29 @@
+Given two integers n and r, find nCr. Since the answer may be very large, calculate the answer modulo 109+7.
+
+// this one is using mode inverse property
+class Solution{
+public:
+    int nCr(int n, int r){
+        // code here
+        long long mod = 1e9 + 7;
+        vector<long long> inv(r+1, 0);
+        inv[1] = 1;
+        for (long long i=2; i<=r;i++){
+            inv[i] = mod-(mod/i)*inv[mod%i] % mod;
+        }
+        for (long long i=2; i<=r;i++){
+            inv[i] = (inv[i]*inv[i-1]) % mod;
+        }
+
+        long long num = 1;
+        long long den = inv[r];
+        for(long long i = 0; i < r;i++){
+            num = (num * (n-i)) % mod;
+        }
+
+        return (num * den) % mod;
+    }
+};
+
+Also nCk = (n-1)Ck + (n-1)C(k-1);
+// using this prop we can also find the solution

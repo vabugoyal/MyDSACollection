@@ -1,0 +1,121 @@
+STRUCTURE:
+
+Basically, you have to count the local minima and maxima + border points
+
+
+Sub-Problems:
+        given
+        a) array starting from index i
+        b) last element
+        c) whether last element was a tip or a valley
+Guesses:
+        if (last element is tip){
+            if (this element greater then last element){
+                update the tip
+            } else {
+                use this as a valley and find the next element
+            }
+        } else {
+            if (this element is less than last element){
+                update the valley
+            } else {
+                use this as a tip and find the next element
+            }
+        }
+
+
+** BETTER APPROACH:
+
+Sub-Problems:
+        given
+        a) dec = length of the sequence till last valley
+        b) inc = length of the sequence till last tip
+
+        and the current element
+Guesses:
+        a) current element greater than prev element
+        b) current element smaller than prev element
+Expressions:
+        if (a[i] > a[i-1]){
+            // this is will be the new tip
+            inc = dec + 1
+        }
+        else if (a[i] < a[i-1){
+            // this will be the new valley
+            dec = inc + 1
+        }
+Answering the original Problem:
+        return max(inc, dec)
+
+
+* CODE:
+
+Approach 1:
+
+    int small;
+    int big = ls[0];
+    int bigger = 1;
+    int l1 = 1;
+    for (int i=1;i<ls.size();i++){
+        if (bigger){
+            if (ls[i] > big){
+                l1++; small = ls[i];
+                bigger = (bigger+1) % 2;
+            } else {
+                big = ls[i];
+            }
+        } else {
+            if (ls[i] < small){
+                l1++; big = ls[i];
+                bigger = (bigger+1) % 2;
+            } else {
+                small = ls[i];
+            }
+        }
+    }
+
+    small = ls[0];
+    bigger = 0;
+    int l2 = 1;
+    for (int i=1;i<ls.size();i++){
+        if (bigger){
+            if (ls[i] > big){
+                l2++; small = ls[i];
+                bigger = (bigger+1) % 2;
+            } else {
+                big = ls[i];
+            }
+        } else {
+            if (ls[i] < small){
+                l2++; big = ls[i];
+                bigger = (bigger+1) % 2;
+            } else {
+                small = ls[i];
+            }
+        }
+    }
+
+
+    return max(l1, l2);
+}
+
+Approach 2:
+
+        int AlternatingaMaxLength(vector<int>&ls){
+            // Code here
+            int inc = 1, dec = 1;
+            for(int i=1;i<ls.size();i++){
+                if (ls[i] > ls[i-1]){
+                    inc = dec + 1;
+                } else if (ls[i] < ls[i-1]){
+                    dec = inc + 1;
+                }
+            }
+            return max(inc, dec);
+        }
+
+
+
+
+
+

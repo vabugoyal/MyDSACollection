@@ -1,0 +1,30 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        Given a number of elements n,
+        find the number of ways to de-arrange them
+2. Guesses:
+        Guesses will be made about the first element.
+        First element can be at (n-1) positions.
+
+        Let's say that I put it at kth position. Now,
+        the element at kth position has two choices either
+        it will be placed at 1st position in return or it
+        will be placed somewhere else.
+
+        dp[n] = (n-1)[dp[n-2] + dp[n-1]]
+        dp[n-2] for the case when it is placed at zero in return
+        dp[n-1] for the case when it is placed somewhere else
+
+        How dp[n-1] is valid ?
+        Consider Me putting kth element at the first position.
+        Now, I don't want it to be at that position. So, I can
+        consider that it is placed at right position.
+        Basically ans is de-arrangement of (n-1) elements.
+
+
+
+
+
+
+

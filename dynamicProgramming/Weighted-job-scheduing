@@ -1,0 +1,43 @@
+STRUCTURE:
+
+Sub-Problems:
+        Given, information about the last job
+        we did (i.e index x) and the jobs after
+        index j which are sorted by their starting time
+        Tell me the max profit which I can get from the
+        rest of the jobs
+Guesses:
+        I will make guesses about the first job which
+        I will do after I have completed the last job
+        That first job can be:
+        a) jth job
+        b) or it will be some job at index greater than j
+Expressions:
+
+        dp[x.time][j] = max(j.profit + dp[j.time][j+1], dp[x.time][j+1])
+        Base Cases:
+        dp[allTime][n] = 0
+
+        The complexity of above code is
+        Space: O(n^2)
+        Time: O(n^2)
+
+
+OPTIMISATION:
+
+At any j, I want to know the next-non-conflict-job
+That can be done in log(n) time by using binary search
+and in this way I can say that the current job starting time
+is not conflicting with any of the previous jobs which have been done
+
+Means, I can get rid of One state of dp that stores the prev job done
+Number of sub-problems are reduced to O(n) but every sub-problem
+now takes O(log(n)) time.
+
+Time complexity: O(nlog(n))
+Space Complexity: O(n)
+
+
+
+
+

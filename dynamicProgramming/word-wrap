@@ -1,0 +1,44 @@
+STRUCTURE
+
+Sub-Problems:
+        Given a set of words to be printed,
+        a limit on number of characters that can
+        be entered in a line find the least possible badness
+        of the words you can have
+Guesses:
+        I will be making guesses about the first line.
+        How many word you will put in the first line.
+Expressions:
+        dp[i] {
+            for j = i to n-1
+                space = k - (words_length + i-1)
+                if (space < 0) break
+                dp[i] = min(space**2 + dp[j+1])
+                if (j = n-1) dp[i] = 0;
+        }
+
+CODE:
+
+    int solveWordWrap(vector<int>nums, int k)
+    {
+        // Code here
+        int n = nums.size();
+        vector<int> dp(n+1, INT32_MAX);
+        dp[n] = 0;
+        for (int i=n-1;i>=0;--i){
+            int wordLen = 0, total, baddness, spaces;
+            for (int j=i;j<n;j++){
+                wordLen += nums[j];
+                total = wordLen + j-i;
+                if (total > k) break;
+                spaces = k - total;
+                if (j == n-1) spaces = 0;
+                baddness = pow(spaces, 2) + dp[j+1];
+                dp[i] = min(dp[i], baddness);
+            }
+        }
+
+        return dp[0];
+    }
+
+

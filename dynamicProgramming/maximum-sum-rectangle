@@ -1,0 +1,59 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        given indexes i and j, tell me
+        what is the maximum sum rectangle which
+        I can form starting from this index
+2. Guesses:
+        Think about the possible rectangles
+        starting from this index
+
+
+* I should think about sub-problems in a different
+  way as I won't be able to build my solution using
+  the above problems. Since, it is a maximum sum
+  problem so I have think about Kadane's algo
+
+  A rectangle is bounded by two columns. I can consider
+  all pair of columns and find the maximum sum-subarray
+  in them vertically
+
+(** A similar Problem is largest rectangle with sum zero)
+(** Find the largest rectangle with equal number of zeroes and ones)
+
+CODE:
+        int maximumSumRectangle(int R, int C, vector<vector<int>> M) {
+            // code here
+            for (int i=0;i<R;i++){
+                for (int j=1;j<C;j++){
+                    M[i][j] += M[i][j-1];
+                }
+            }
+            int ans = INT32_MIN;
+            for (int i=0;i<C;i++) {
+                for (int j=i;j<C;j++) {
+                    vector<int> v(R);
+                    for (int r=0;r<R;r++) {
+                        v[r] = M[r][j] - (i-1 >= 0 ? M[r][i-1]: 0);
+                    }
+
+                    // find maximum sum sub-array in Vector
+                    ans = max(ans, Kadane(v, R));
+                }
+            }
+            return ans;
+        }
+
+        int Kadane(vector<int> &v, int n){
+
+            int prev = 0;
+            int ans = INT32_MIN;
+            for (int i=0;i<n;i++){
+                prev = max(v[i], prev + v[i]);
+                ans = max(ans, prev);
+            }
+            return ans;
+        }
+
+
+

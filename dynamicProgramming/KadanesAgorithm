@@ -1,0 +1,50 @@
+STRUCTURE:
+
+Question:   Given an array Arr[] of N integers.
+            Find the contiguous sub-array(containing at least one number)
+            which has the maximum sum and return its sum.
+
+* First question which I should ask myself is what property of
+  the sub-array should I keep as the state of the dp.
+
+Possibility1: Starting Point of the subarray || no. of sub-problems are O(n)
+Possibility2: Ending Point of the subarray || no. of sub-problems are O(n)
+Possibility3: Sum of all the elements of the subarray || O(x), where x is abs sum
+                                                         of all element of the subarray (very large)
+
+
+1. Sub-problems:
+        given a starting index, I have to tell
+        what is the maximum sum of the sub-array which is
+        starting from this index.
+2. Guesses:
+        Either the subarray will be empty or not
+3. Relating Sub-Problems:
+        x   y
+        [i, i+1 ......]
+        dp[i] = max(ls[i] + dp[i+1], 0)
+
+        Base Cases:
+        dp[i+1] = 0
+4. Answering the original Problem:
+        return max of all dp[i]
+
+CODE:
+
+    long long maxSubarraySum(int arr[], int n){
+
+        // Your code here
+        vector<long long> dp(n+1, 0);
+        long long ans = -LLONG_MAX;
+        for(int i=n-1;i>=0;i--){
+            dp[i] = max((long long)arr[i], arr[i] + dp[i+1]);
+            ans = max(ans, dp[i]);
+        }
+
+        return ans;
+
+    }
+
+
+
+

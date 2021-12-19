@@ -1,0 +1,51 @@
+STRUCTURE:
+
+Sub-Problems:
+        given an array starting form index i and
+        ending at index j, tell me the max money which
+        first person can win
+Guesses:
+        We will make guesses about the first person
+        a) first person chooses element at ith index
+        b) first person chooses element at jth index
+Recurrence Relations:
+        Case 1:
+        if first person chooses ith index, second person has two options
+        a) choose i+1
+        b) choose j
+        return the min of both the cases
+
+        Case 2:
+        if first person chooses jth index, second person has two options
+        a) choose i
+        b) choose j-1
+        return the min of both the cases
+
+        return the max of two cases
+Answering the original problem:
+        return dp[0][n-1]
+
+
+CODE:
+            memo = {}
+            def func(i, j):
+                if (i > j): return 0
+                if (i, j) in memo: return memo[(i, j)]
+                res1 = price[i] + min(func(i+1, j-1), func(i+2, j))
+                res2 = price[j] + min(func(i+1, j-1), func(i, j-2))
+
+                res = max(res1, res2)
+                memo[(i, j)] = res
+                return res
+
+            return func(0, n-1)
+
+
+
+
+
+
+
+
+
+

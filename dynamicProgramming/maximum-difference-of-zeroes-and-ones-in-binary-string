@@ -1,0 +1,38 @@
+KADANES ALGO
+STRUCTURE:
+
+1. Sub-Problems:
+        given an index x, I will ask what is the max sum
+        of the all the sub-arrays ending at that index.
+
+2. Guesses:
+        either ith element will be a part of
+        the array we are getting from state i-1
+        or it will not be (it will be an empty array)
+
+3. Relating Sub-problems
+        if adding current element to prev state dp then it is
+        better not to put any element in the sub-array
+        dp[i] = max(0, dp[i-1] + ls[i])
+
+4. Answering the original problem:
+        ans = max(all dp[i])
+
+
+CODE:
+
+// Your code goes here
+	    int ans = -1;
+	    int prev = 0;
+	    for(int i=0;i<S.size();i++){
+	        prev += (S[i] == '0' ? 1: -1);
+	        if (prev < 0){
+	            prev = 0;
+	        } else {
+	            ans = max(ans, prev);
+	        }
+	    }
+
+	    return ans;
+
+

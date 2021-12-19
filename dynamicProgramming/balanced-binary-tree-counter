@@ -1,0 +1,32 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        given a height find the number of
+        balanced binary trees with that height
+
+2. Guesses:
+        since the tree is balanced, so two conditions are possible
+        a) difference between heights is 1, (2 ways)
+        b) difference between heights is 0, (1 way)
+
+3. Relating Sub-Problems:
+        dp[h] = d[h-1]*dp[h-1] + 2*dp[h-2]*dp[h-1]
+        dp[1] = 1
+        dp[0] = 1
+
+4. Answering the original Problem:
+        return dp[h]
+
+    long long int countBT(int h) {
+        // code here
+        long long mod = 1e9 + 7;
+        long long a = 1, b = 1;
+        for(int i=2;i<=h;i++){
+            long long temp = b;
+            b = (b*b + 2*b*a) % mod;
+            a = temp;
+        }
+
+        return b;
+
+    }

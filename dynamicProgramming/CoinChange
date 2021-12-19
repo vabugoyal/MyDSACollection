@@ -1,0 +1,58 @@
+// Recursive Solution
+
+class Solution {
+  public:
+    map<pair<int, int>, long long> memo;
+    long long int count(int S[], int m, int n) {
+
+        // code here.
+        return dp(n, 0, m, S);
+    }
+
+    long long dp(int x, int j, int m, int * S){
+
+        // setting the base cases
+        if (x < 0){
+            return 0;
+        }
+        if (x == 0){
+            return 1;
+        }
+        if (j == m){
+            return 0;
+        }
+        if (memo.count({x, j}) > 0) {
+            return memo[{x,j}];
+        }
+        memo[{x,j}] = dp(x, j+1, m, S) + dp(x-S[j], j, m, S);
+        return memo[{x,j}];
+    }
+
+};
+
+
+// Tabulation
+class Solution {
+  public:
+    long long int count(int S[], int m, int n) {
+
+        // code here.
+        vector<vector<long long>> dp(m+1, vector<long long> (n+1, 0LL));
+        sort(S, S+n);
+        dp[0][0] = 1;
+        for (int c=1; c <= m; c++){
+            dp[c][0] = 1;
+            for (int s = 1; s <= n; s++){
+                dp[c][s] = dp[c-1][s];
+                if (s - S[c-1] >= 0) dp[c][s] += dp[c][s - S[c-1]];
+            }
+        }
+
+        return dp[m][n];
+    }
+};
+
+// Since we are using only the current and previous rows
+// it is possible to do it in O(1) space
+
+

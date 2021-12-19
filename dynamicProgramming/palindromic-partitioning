@@ -1,0 +1,70 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        given a string starting form index i,
+        tell me the minimum possible moves required to do palindromic
+        partitioning.
+2. Guesses:
+        make a guess about the first palindromic partitioning
+        which I will be doing
+3. Expressions:
+
+        for x = i to n-1
+            if (s[i..x] is palindrome){
+                ans = min(ans, 1 + dp[x+1])
+            }
+
+        to find s[i..x] in constant time
+        we can do pre-calculations for every index
+        i that what are the ending indexes of palindromes
+        starting from that point
+
+
+
+4. Answering original problem:
+        return dp[0]
+
+
+CODE:
+
+    int palindromicPartition(string str)
+    {
+        // code here
+        int n = str.size();
+        vector<vector<int>> memo(n+1);
+        findPalindromes(memo, n, str);
+
+        vector<int> dp(n+1, INT32_MAX); dp[n] = 0;
+        for (int i=n-1;i>=0;--i){
+            for (int end: memo[i]){
+                dp[i] = min(dp[i], 1 + dp[end+1]);
+            }
+        }
+
+        return dp[0]-1;
+
+    }
+
+    void findPalindromes(vector<vector<int>> &memo, int n, string &s){
+
+        for (int i=0;i<n;i++){
+
+            // palindromes of odd length
+            for (int j=0;j<n;j++){
+                if (i-j >=0 and i+j < n and s[i-j] == s[i+j]){
+                    memo[i-j].push_back(i+j);
+                } else {
+                    break;
+                }
+            }
+
+            // palindromes of even length
+            for (int j=0;j<n;j++){
+                if (i-j >=0 and i+j+1 < n and s[i-j] == s[i+j+1]){
+                    memo[i-j].push_back(i+j+1);
+                } else {
+                    break;
+                }
+            }
+        }
+    }

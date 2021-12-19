@@ -1,0 +1,49 @@
+STRUCTURE
+
+1. sub-problems:
+        given an array and the the biggest prev
+        element (say x), we need to find the maximum sum
+        subsequence from the given array such that subsequence is
+        increasing and all the elements are bigger than or equal to x
+
+2. Guesses:
+        if first element of the array is greater than x
+        then I have two choices
+        a) i can choose that element
+        b) i do not choose that element
+
+3. Relating Sub-problems:
+        if (ls[i] >= x)
+            dp[i][last] = max(dp[i+1][last], ls[i] + dp[i+1][ls[i]])
+        else
+            dp[i][last] = dp[i+1][last]
+
+4. Solving the original problem:
+        return dp[0][-1]
+
+
+SPACE CAN BE OPTIMISED IN THE ABOVE SOLUTION
+since the topological order of sub-problems is 1 .. n
+so if we are at any xth index we know tha optimal values for the
+indexes less than it for all values of last element
+Hence, for any x we can check all the values of the indexes less and
+guess if that is the second last element of the subseqence
+
+
+	public:
+	int maxSumIS(int arr[], int n)
+	{
+	    // Your code goes here
+	    vector<int> dp(n, 0);
+	    int ans = 0;
+	    for(int i=0;i<n;i++){
+	        dp[i] = arr[i];
+	        for(int j=0;j<i;j++){
+	            if (dp[i] > dp[j])
+	                dp[i] = max(dp[i], dp[j] + arr[i]);
+	        }
+	        ans = max(ans, dp[i]);
+	    }
+	    return ans;
+	}
+};

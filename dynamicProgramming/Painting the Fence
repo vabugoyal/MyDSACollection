@@ -1,0 +1,90 @@
+Structure
+
+1. Sub-problems:
+        I am at fence I and given the color
+        of the last fence and also given if
+        the color of last two fences is equal
+2. Guesses:
+        When the last two fences have the same color
+                            or
+        last two fences does not have the same color
+3. Relating sub-problems:
+        if last two colors are same
+        dp[i, last, same] = 0
+        for color in colors:
+            if (color == last){
+                continue
+            } else {
+                dp[i, last, same] += dp[i+1, color, not-same];
+            }
+
+        if last two colors are not same
+        dp[i, last, not-same] = 0
+        for color in colors:
+            if (color == last){
+                dp[i, last, not-same] += dp[i+1, color, same];
+            } else {
+                dp[i, last, not-same] += dp[i+1, color, not-same];
+            }
+
+                            OPTIMISATION
+
+        The above code has time complexity of O(n*k*2*k)
+        NOTICE: It does not matter with which color we colored the last fence
+
+        if (same){
+            dp[n][same] = (k-1)*dp[n+1][not-same]
+        }
+        else {
+            dp[n][same] = (k-1)*dp[n+1][not-same] + dp[n+1][same]
+        }
+        if (n == 0){
+            dp[0][same, not-same] = k*dp[n+1][not-same];
+        }
+
+
+4. Original problem:
+        return dp[0, 0]
+
+
+
+CODE:
+
+       vector<vector<long long>> memo;
+        int n, k;
+        long long mod = 1e9 + 7;
+        long long countWays(int N, int K){
+            // code here
+            n = N; k = K;
+            memo.assign(n, vector<long long> (2, -1));
+            return helper(0, 0);
+            // return 0;
+        }
+
+        long long helper(int i, int same){
+            if (i == n){
+                return 1;
+            }
+            if (memo[i][same] != -1){
+                return memo[i][same];
+            }
+
+            long long ans = 0;
+            if (i == 0){
+                ans = k*helper(i+1, 0);
+            }
+            else if (same) {
+                ans = (k-1)*helper(i+1, 0);
+            }
+            else {
+                ans = (k-1)*helper(i+1, 0) + helper(i+1, 1);
+            }
+            ans = ans % mod;
+            memo[i][same] = ans;
+            return ans;
+        }
+
+
+
+
+

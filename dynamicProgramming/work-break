@@ -1,0 +1,36 @@
+STRUCTURE:
+
+Sub-Problems:
+        given the starting index i of the string
+        tell me if it is possible to make that
+        string using those words
+Guesses:
+        I will make a guess about the first word
+Relating Sub-Problems:
+        for all words {
+            if word match from starting{
+                dp[i] = dp[i+len(word)]
+            }
+        }
+
+        m = len(word)
+        n = len(dict)
+        * Complexity: O(m*(n+m))
+
+CODE:
+
+    int wordBreak(string A, vector<string> &B) {
+        //code here
+        int n = A.length();
+        vector<int> dp(n+1, 0);
+        dp[n] = 1;
+        for (int i=n-1;i>=0;--i){
+            for (auto word: B){
+                if (word == A.substr(i, word.length())){
+                    dp[i] |= dp[i+word.length()];
+                }
+            }
+        }
+
+        return dp[0];
+    }

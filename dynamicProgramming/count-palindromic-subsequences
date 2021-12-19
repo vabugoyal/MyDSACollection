@@ -1,0 +1,56 @@
+STRUCTURE
+
+Sub-Problems:
+        given a string starting from index i
+        and ending at index j, find the number of palindromic
+        sub-sequences in that string
+Guesses:
+        I will make a guess about the indexes i and j
+        Either, they will be the part of a palindrome
+        of they will not be
+Expressions:
+        if(s[i] == s[j]){
+            dp[i][j] = (dp[i+1][j-1] + 1) + (dp[i+1][j] + dp[i][j-1] - dp[i+1][j-1])
+                                    or
+            dp[i][j] = dp[i+1][j] + dp[i][j-1]
+
+            +1 is for the case when nothing is selected from dp[i+1][j-1]
+        } else {
+            dp[i][j] = dp[i+1][j] + dp[i][j-1] - dp[i+1][j-1]
+        }
+
+        Base Cases:
+        if (i > j) return 0
+        if (i == j) return 1
+
+Answering the original problem:
+        return dp[0][n-1]
+
+
+CODE:
+        long long int countPS(string s)
+        {
+           //Your code here
+           long long mod = 1e9 + 7;
+           int n = s.size();
+           vector<vector<long long>> dp(n, vector<long long> (n, 0LL));
+           // Base Cases
+           for (int i=0;i<n;i++) dp[i][i] = 1LL;
+
+           for (int i=n-2;i>=0;--i){
+               for (int j=i+1;j<n;j++){
+                   if (s[i] == s[j]){
+                       dp[i][j] = dp[i+1][j] + dp[i][j-1] + 1;
+                   } else {
+                       dp[i][j] = dp[i+1][j] + dp[i][j-1] - dp[i+1][j-1];
+                   }
+                   dp[i][j] = ((dp[i][j] % mod) + mod) % mod;
+               }
+           }
+
+           return dp[0][n-1];
+
+
+        }
+
+

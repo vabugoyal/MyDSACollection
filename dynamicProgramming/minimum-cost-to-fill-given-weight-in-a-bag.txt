@@ -1,0 +1,39 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        given the weight of oranges to be bought,
+        we have to find the minimum cost to buy
+        the given weight oranges
+
+2. Guesses:
+        I will make a guess about the first packet
+        which I will buy
+
+3. Relating Sub-problems:
+        w = weight to be achieved
+        dp[w] = inf
+        for packet in available packets:
+            dp[w] = min(cost, packet.cost + dp[w-packet.weight])
+
+        Base Case:
+            dp[0] = 0
+
+CODE:
+            public:
+
+            	int minimumCost(int cost[], int N, int W)
+            	{
+
+            	    int inf = 100000000;
+            	    vector<int> dp(201, inf);
+            	    dp[0] = 0;
+                    // Your code goes here
+                    for(int w=1;w<=W;w++){
+                        for (int i=0;i<N;i++){
+                            if (cost[i] == -1) continue;
+                            if (w-i-1 >= 0) dp[w] = min(dp[w], cost[i] + dp[w-(i+1)]);
+                        }
+                    }
+                    return dp[W] == inf ? -1: dp[W];
+            	}
+            };

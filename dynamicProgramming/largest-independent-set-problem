@@ -1,0 +1,21 @@
+STRUCTURE
+
+Sub-Problems:
+        given a tree rooted at index x, tell me
+        the largest independent set in it.
+Guesses:
+        I will make guesses about the root of the tree
+        a) root will be a part of largest independent set
+        b) root will not be a part of largest independent set
+Expressions:
+        I root is a part of largest then its child can't be
+        possibility1 = 1 + dp[child of child], sum over all child of child
+        possibility2 = dp[child] , sum over all child
+
+        dp[i] = max(possibility1, possibility2)
+
+Answering the original Problem:
+        return dp[root]
+
+
+

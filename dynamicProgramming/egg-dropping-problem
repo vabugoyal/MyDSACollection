@@ -1,0 +1,59 @@
+STRUCTURE
+
+1. Sub-problems:
+        given a number of eggs and
+        certain number of floors to be tested
+        tell me how many moves do I require to
+        know about all possible critical floors
+
+2. Guesses:
+        I have k floor in front of me.
+        Let me drop my first egg at ith floor
+        Now, two things can happen
+        a) My egg will break : critical floor can be that floor or a floor below it
+        b) My egg wil not break : critical floor is for sure above it
+
+        Try all the possibilities
+
+3. Relating Sub-problems:
+
+        dp(n, k) = min[max(dp(n-1, x-1) , dp(n, k-x)) + 1] for all x in floors
+
+        Base Case:
+            dp(n, 0) = 0   // I have 0 floors to test, that can be done in 0 moves
+            dp(0, k) = not possible  // I don't have any eggs but I have some
+                                     // floors to test. Clearly, that is not possible
+
+
+
+4. Answering the original problem:
+        return dp(N, K)
+
+CODE:
+
+    public:
+    int inf = 10000000;
+    //Function to find minimum number of attempts needed in
+    //order to find the critical floor.
+    int eggDrop(int n, int k)
+    {
+        // your code here
+        vector<vector<int>> dp(n+1, vector<int> (k+1, inf));
+        for(int i=0;i<=n;i++) dp[i][0] = 0;
+        for(int i=1;i<=k;i++) dp[0][i] = inf;
+
+        for(int i=1;i<=n;i++){
+            for(int j=1;j<=k;j++){
+                int res = inf;
+                for(int x=1;x<=j;x++)
+                    res = min(res, 1+max(dp[i-1][x-1], dp[i][j-x]));
+                dp[i][j] = res;
+            }
+        }
+
+        return dp[n][k];
+    }
+
+
+
+

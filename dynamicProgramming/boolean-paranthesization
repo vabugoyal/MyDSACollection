@@ -1,0 +1,82 @@
+STRUCTURE:
+
+1. Sub-Problems:
+        given an expression, starting from index i,
+        ending at index j, find the number of ways
+        I can put brackets in certain way and
+        I have to tell
+        a) number of ways to produce 0
+        b) number of ways to produce 1
+2. Guesses:
+        I will make guess about the last operation
+        which I will be performing, it will be one of the following
+        a) & : results of both the brackets should be 1
+        b) | : results of one of the brackets should be 1
+        c) ^ : results of both the brackets should be opposite
+3. Expressions:
+        res_zero = 0, res_one = 0
+        for x = i to j
+            if (s[x] in (&, |, ^)) {
+                left_zero_ways, left_one_ways = dp[i][x-1]
+                right_zero_ways, right_one_ways = dp[x+1][j]
+                if (s[i] == &){
+                    res_one += left_one_ways * right_one_ways
+                    res_zero += (left_zero_ways + left_one_ways) * (right_zero_ways + right_one_ways) - res_one
+                }
+                if (s[i] == |){
+                    res_zero += left_zero_ways * right_zero_ways
+                    res_one += (left_zero_ways + left_one_ways) * (right_zero_ways + right_one_ways) - res_zero
+                }
+                if (s[i] == ^){
+                    res_zero += left_zero_ways * right_zero_ways + left_one_ways * right_one_ways
+                    res_one += (left_zero_ways + right_one_ways) * (right_zero_ways + left_one_ways) - res_zero
+                }
+            }
+
+        Base Cases:
+            if (i == j) {
+                if s[i] == 'T': return (1, 0)
+                else return (0, 1)
+            }
+
+
+CODE:
+
+class Solution:
+    def countWays(self, N, s):
+        # code here
+        memo = {}
+        def func(i, j):
+            if (i == j):
+                if (s[i] == 'T'): return (0, 1)
+                else: return (1, 0)
+            if (i, j) in memo: return memo[(i, j)]
+
+            res_zero = 0; res_one = 0
+            for x in range(i, j+1):
+                if (s[x] in ('&', '|', '^')):
+                    left_zero_ways, left_one_ways = func(i, x-1)
+                    right_zero_ways, right_one_ways = func(x+1, j)
+                    total = (left_zero_ways + left_one_ways) * (right_zero_ways + right_one_ways)
+                    if (s[x] == '&'):
+                        one = left_one_ways * right_one_ways
+                        zero = total - one
+
+                    elif (s[x] == '|'):
+                        zero = left_zero_ways * right_zero_ways
+                        one = total - zero
+
+                    elif (s[x] == '^'):
+                        zero = left_zero_ways * right_zero_ways + left_one_ways * right_one_ways
+                        one = total - zero
+                    res_one += one; res_zero += zero
+
+            memo[(i, j)] = (res_zero, res_one)
+            return (res_zero%1003, res_one%1003)
+
+        return func(0, N-1)[1]
+
+
+
+
+

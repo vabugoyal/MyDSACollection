@@ -1,0 +1,25 @@
+STRUCTURE
+
+Sub-Problems:
+        given a string starting from index i
+        and ending at index j, find the longest
+        palindromic subsequence in it
+Guesses:
+        Guesses will be made about the characters at index i and j
+Expressions:
+
+        if (s[i] == s[j]) {
+            dp[i][j] = 2 + dp[i+1][j+1]
+        } else {
+            dp[i][j] = max(dp[i+1][j], dp[i][j-1])
+        }
+
+        Base Cases:
+        if (i > j) dp[i][j] = 0
+        if (i == j) dp[i][j] = 1
+
+Answering the original Problem:
+        return max(dp[i][j]) for all i, j
+
+
+

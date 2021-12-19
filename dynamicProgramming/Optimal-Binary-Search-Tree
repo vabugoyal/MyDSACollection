@@ -1,0 +1,37 @@
+STRUCTURE
+
+1. Sub-Problems:
+        Given an array, starting from index i and
+        ending at index j and given the frequency of
+        each element in that range, the level at
+        which that tree will be rooted, tell me the minimum
+        possible cost to construct the tree
+2. Guesses:
+        I will be making guesses about the root of
+        the tree.
+3. Expressions:
+        for x = i to j
+            dp[i][j][l] = min(dp[i][j][l], freq[x]*l + dp[i][x-1][l+1] + dp[x+1][j][l+1])
+
+        Base Cases:
+            // when the array is empty
+            if (i > j) return 0
+
+4. Answering the original Problem:
+        return dp[0][N-1][1]
+
+
+//////: Optimisation
+Problem can be solved without storing the level of the root node
+dp[i][j] = min(dp[i][j], (freq[x]) + (freqSum[i...x] + dp[i][x-1]) + (freqSum[x+1..j] + dp[x+1][j]))
+dp[i][j] = min(dp[i][j], freq[i...j] + dp[i][x-1] + dp[x+1][j])
+freqSum[i...x] can be calculated in constant time by building frequency sum Array
+Space complexity of array will be O(N)
+Total Space Complexity O(n^2)
+Total time complexity O(n^3)
+
+
+
+
+
+

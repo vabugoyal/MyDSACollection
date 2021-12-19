@@ -1,0 +1,33 @@
+STRUCTURE
+
+Sub-Problems:
+        There are two players A and B.
+        Given i number of coins, first turn is of A.
+        Tell me if there is a way to choose coins such that
+        last coin is chosen by A. Also, given they can
+        choose x or y or one coin in a single time
+Guesses:
+        I will make guesses about the first turn
+        of the player.
+Expressions:
+        dp[i][a] = ~min(dp[i-1][b], dp[i-x][b], dp[i-y][b])
+        dp[i][b] = ~min(dp[i-1][a], dp[i-x][a], dp[i-y][a])
+
+        Base Cases:
+        dp[0][a] = 0
+        dp[0][b] = 0
+
+        Small Optimisation:
+
+        Since, the above two expressions are same. We, don't
+        even need a 2D dp if i is same then results of both of
+        them are same. So we can get rid of the second dimension
+        of dp.
+
+Answering the original problem:
+        return dp[n][a]
+
+
+
+
+

@@ -1,0 +1,50 @@
+STRUCTURE:
+
+Sub-Problems:
+        Given a starting digit, tell me how many
+        numbers you can make of length k starting
+        from this digit
+Guesses:
+        I will make guesses about the second digit which I will choose
+        and find the numbers of length k-1 starting
+        from those points
+
+
+
+
+
+CODE:
+
+    long long getCount(int N)
+    {
+        // Your code goes here
+        vector<vector<int>> neigh_digits = {
+        {8}, // 0
+        {2, 4}, // 1
+        {1, 5, 3}, // 2
+        {2, 6}, // 3
+        {1, 5, 7}, // 4
+        {4, 2, 6, 8}, // 5
+        {5, 3, 9}, // 6
+        {4, 8}, // 7
+        {7, 5, 9, 0}, // 8
+        {8, 6} // 9
+        };
+        vector<vector<long long>> dp(10, vector<long long>(N+1, 1));
+        for(int i=2;i<=N;i++) {
+            for (int j=0;j<10;j++) {
+                dp[j][i] = dp[j][i-1];
+                for (auto neigh: neigh_digits[j]){
+                    dp[j][i] += dp[neigh][i-1];
+                }
+            }
+        }
+        long long ans = 0;
+        for(int i=0;i<10;i++){
+            ans += dp[i][N];
+        }
+
+        return ans;
+    }
+
+

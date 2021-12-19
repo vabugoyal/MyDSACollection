@@ -1,0 +1,33 @@
+STRUCTURE:
+
+1. Sub-problems:
+        given the starting point of the matrix,
+        tell me the max size of 1s matrix possible
+
+2. Guesses:
+        I am at (i, j), if this point is one then
+        there is a possibility of a matrix
+        else no possibility
+
+3. Relating Sub-Problems:
+        if (mat[i][j]){
+            dp[i][j] = 1+min({dp[i][j+1], dp[i+1][j], dp[i+1][j+1]});
+        } else {
+            dp[i][j] = 0;
+        }
+        ans = max(ans, dp[i][j]);
+
+        Base Cases:
+            dp[i][m] = 0; for i=0 to n
+            dp[n][i] = 0; for i=0 to m
+
+4. Answering the original problem:
+        max of all dps
+
+
+
+
+
+
+
+
