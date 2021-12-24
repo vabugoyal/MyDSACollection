@@ -1,0 +1,21 @@
+STRUCTURE
+
+Sub-Problems:
+        given an array starting from index i,
+        tell me the length of the longest increasing (strictly)
+        sub-sequence
+Guesses:
+        a) ith element is a part of a sub-sequence
+        b) ith element is not a part of a sub-sequence
+Expressions:
+        dp[i] = dp[i+1]
+        for x = i+1 to n-1
+            if (ls[x] > ls[i]) {
+                dp[i] = max(dp[i], 1 + dp[x])
+            }
+
+        Base Cases
+        dp[n] = 0
+
+        Time Complexity: O(n^2)
+

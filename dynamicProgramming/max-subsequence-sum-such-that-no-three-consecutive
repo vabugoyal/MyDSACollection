@@ -1,0 +1,26 @@
+STRUCTURE
+
+Sub-Problems:
+        given an array starting from index i,
+        tell me the maximum sum which I can get given
+        I cannot choose three consecutive elements
+Guesses:
+        a) ith element is not included
+        b) ith element is included
+            i)   ith and (i+1)th elements are consecutive
+            ii)  ith and (i+1)th elements are not consecutive
+Expressions:
+
+        dp[i] = max(ls[i]+ls[i+1]+dp[i+3], ls[i] + dp[i+2], dp[i+1])
+
+        Base Cases:
+        dp[n] = 0
+        dp[n+1] = 0
+        dp[n+2] = 0
+Answering the original problem:
+        return dp[0]
+
+
+
+
+

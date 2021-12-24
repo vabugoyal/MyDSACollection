@@ -1,5 +1,11 @@
 Given two integers n and r, find nCr. Since the answer may be very large, calculate the answer modulo 109+7.
 
+* Modular inverse of any number is given by
+
+inv[1] = 1
+inv[i] = − ⌊m/i⌋ * inv[m mod i] mod m
+
+
 // this one is using mode inverse property
 class Solution{
 public:
@@ -27,3 +33,19 @@ public:
 
 Also nCk = (n-1)Ck + (n-1)C(k-1);
 // using this prop we can also find the solution
+// The following code is based on pascals triangle
+
+    int nCr(int n, int r){
+        // code here
+        int mod = 1e9+7;
+        vector<int> dp(r+1, 0);
+        // Base Case
+        dp[0] = 1;
+        for (int i=1;i<=n;++i) {
+            for (int j=r;j>0;--j) {
+                dp[j] = (dp[j] + dp[j-1]) % mod;
+            }
+        }
+        return dp[r];
+
+    }

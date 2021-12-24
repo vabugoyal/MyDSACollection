@@ -1,0 +1,19 @@
+STRUCTURE
+
+Sub-Problems:
+        given an array starting form index i, tell
+        me the number of sub-sequences having product less
+        than j
+Guesses:
+        a) ith element is a part of a sub-sequence
+        b) ith element is not a part of a sub-sequence
+Expressions:
+        dp[i][j] = dp[i+1][j] + [ dp[i+1][(j+ls[i]-1)/ls[i]] + (j > ls[i]) ]
+
+        Base Cases
+        dp[n][0] = 0 for all j
+
+Answering the original problem:
+
+        return dp[0][k]
+

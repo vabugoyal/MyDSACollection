@@ -1,0 +1,21 @@
+STRUCTURE
+
+Sub-Problems:
+        given the miner in some column i and row j,
+        tell me the max gold which he can get, given
+        he can move -, /, \ to next row
+Guesses:
+        a) miner will go straight
+        b) miner will move up-right
+        c) miner will move down-right
+Expressions:
+        dp[i][j] = matrix[i][j] + max(dp[i][j+1], dp[i+1][j+1], dp[i-1][j+1])
+
+        Base Cases
+        dp[n][j] = 0 for all j
+        dp[i][m] = 0 for all i
+Answering the original problem:
+        return max of dp[i][0] for all i in n.
+
+
+

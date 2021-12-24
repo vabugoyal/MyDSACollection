@@ -1,0 +1,43 @@
+You can choose any two characters in the string and
+replace the occurrences of first with the second.
+Find the lexicographically smallest string.
+
+Greedy Algorithm:
+        I will all the unique characters in the string,
+        sort them, then iterate through them and make sure
+        that first non-occurring character is u.
+
+
+CODE:
+            string chooseandswap(string &a){
+                // Code Here
+
+                string ans = a;
+                map<char, int> occured;
+                set<char> unique;
+                for(auto c: a) unique.insert(c);
+                for (auto u: unique) {
+                    // first non-accuring should be u
+                    for (auto c: a){
+                        if (!occured[c]) {
+                            if (c == u){
+                                occured[c] = 1;
+                                break;
+                            }
+                            else {
+                                // repace u with c
+                                for (auto &x: ans) {
+                                    if (x == u) x = c;
+                                    else if (x == c) x = u;
+                                }
+                                return ans;
+                            }
+                        }
+                    }
+                }
+
+                return a;
+
+
+
+

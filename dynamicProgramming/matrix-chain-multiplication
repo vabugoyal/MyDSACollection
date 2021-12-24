@@ -1,0 +1,49 @@
+STRUCTURE
+
+Sub-Problems:
+        given an array of matrices to be multiplied together
+        starting from index i and ending at index j. Tell me the
+        minimum possible operations required to multiply those
+        matrices together.
+Guesses:
+        Since, the matrices are to be multiplied together, so
+        there will be some multiplication which I will be doing at last.
+        I will make guesses about that operation.
+Expressions:
+        for x = i+1 to j
+            dp[i][j] = min(dp[i][j], dp[i][x-1] + ls[i]*ls[x]*ls[j+1] + dp[x][j])
+
+        Base Cases:
+        dp[i][j] = 0 for all i >= j
+
+
+Answering the original Problem:
+        return dp[0][n-2]
+
+
+CODE:
+
+    int MatrixChainOrder(int* ls, int n)
+    {
+
+    	vector<vector<int>> dp(n, vector<int> (n, 0));
+
+    	for (int i=n-2;i>=0;--i) {
+    	    for (int j=i+1;j<n;j++) {
+    	        dp[i][j] = INT32_MAX;
+    	        for (int x=i+1;x<=j;x++) {
+    	            dp[i][j] = min(dp[i][j], dp[i][x-1] + ls[i]*ls[x]*ls[j+1] + dp[x][j]);
+    	        }
+    	    }
+    	}
+
+    	return dp[0][n-2];
+
+
+
+    }
+
+
+
+
+

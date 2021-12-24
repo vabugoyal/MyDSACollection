@@ -1,0 +1,80 @@
+Given the arrival and departure time of trains
+that reach a railway station. Find the minimum
+number of railway stations required so that no train
+is kept waiting.
+
+Arrival and departure time can never be the same for a
+train but we can have arrival time of one train equal to
+departure time of the other. At any given instance of
+time, same platform can not be used for both departure of
+a train and arrival of another train. In such cases,
+we need different platforms.
+
+
+Greedy Algorithm:
+        I have to find what are the max number of trains
+        standing at the station at any given point in time.
+        Since, the time varies only from 0 to 2359.
+        I can create a dp which will store the max amount of trains
+        standing at that point at a particular time.
+
+        CODE:
+                int findPlatform(int arr[], int dep[], int n)
+                {
+                	// Your code here
+                	const int max_time = 2361;
+                	vector<int> dp(max_time, 0);
+                	for (int i=0;i<n;i++) {
+                	    dp[arr[i]]++;
+                	    dp[dep[i]+1]--;
+                	}
+                	int ans = dp[0];
+                	for (int i=1;i<max_time;i++){
+                	    dp[i] += dp[i-1];
+                	    ans = max(dp[i], ans);
+                	}
+                	return ans;
+
+                }
+
+
+Greedy Algorithm2:
+        We can sort the the trains by their arrival time
+        and check for every train that how many trains
+        have not departed yet.
+
+            ________
+        ------
+         ---
+          -------------
+
+        The above idea can be implemented either by
+        policy based data structure or by using the following
+        trick
+
+        CODE:
+                int findPlatform(int arr[], int dep[], int n)
+                {
+                	// Your code here
+                	vector<pair<int, int>> events;
+
+                	for (int i=0;i<n;i++) {
+                	    events.push_back({arr[i], 0});
+                	    events.push_back({dep[i], 1});
+                	}
+                	sort(events.begin(), events.end());
+                	int ans = 0;
+                	int curr = 0;
+                	for (int i=0;i<2*n;i++) {
+                	    if (events[i].second == 0) curr++;
+                	    else curr--;
+                	    ans = max(ans, curr);
+                	}
+
+                	return ans;
+
+                }
+
+
+
+

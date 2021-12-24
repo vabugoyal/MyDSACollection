@@ -1,0 +1,38 @@
+Problem:
+        We are given n tasks with durations and deadlines
+        and our task is to choose and order to perform tasks.
+        For each task we earn d-x points where d is the deadline
+        of the task and x is the moment when it is completed.
+
+
+Algorithm
+        Aim: To maximise the profit.
+
+        let,    task 1 is completed at x1 moment
+                task 2 is completed at x2 moment
+                ....
+
+                ...
+                task n is completed at xn moment
+
+        Answer =    (d1 - x1) + (d2 - x2) + ..... + (dn - xn)
+                    (d1 + d2 + ... + dn) - (x1 + x2 + ... + xn)
+
+        Since, d1 + d2 + ..... + dn is constant, the solution can only
+        be optimised by minimising the sum (x1 + x2 + .... + xn)
+
+        Let the first duration is ________ and second duration is ---.
+        Then x1 + x2 will be 8 + 11 = 19.
+
+        Let the first duration is --- and second duration is --------.
+        Then x1 + x2 will be 3 + 11 = 14.
+
+        From the above observation we can say that, it is optimal to choose
+        a Task with smaller duration first.
+
+
+
+
+
+
+

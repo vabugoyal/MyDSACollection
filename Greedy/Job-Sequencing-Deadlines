@@ -1,0 +1,58 @@
+Given the deadline and profit of a Job. Tell me
+the max-profit which I can get by doing some or all
+of the Jobs, such that no two Jobs are collapsing.
+
+* deadline
+* profit
+
+Each Job takes 1 unit of time to complete.
+Tell max-profit.
+
+
+Greedy Algorithm:
+        Since, each Job takes 1 unit of time to complete.
+        Let me create some slots to which I will assign the Jobs.
+
+        If a Job has the highest profit and it demands the requirement
+        of some slot, then that Job deserves the most to be in that slot.
+
+        So, from above statement it is clear that the Jobs should be processed
+        in the decreasing order of their profits.
+
+        At any time, I will have some Job 'J'. It has deadline d and I know
+        that the Job must be completed before deadline. I will look at the
+        available slots before that deadline. I will put it in the last available
+        slot as it will leave the max space for teh Jobs which are needed to be
+        completed first.
+
+        Greedy thing:   Best solution to each slot is giving me the best solution
+                        to original answer.
+
+
+CODE:
+        vector<int> JobScheduling(Job arr[], int n)
+        {
+            // your code here
+            // sorting Jobs in decreasing order of their profit
+            sort(arr, arr+n, [&](Job &a, Job &b) {
+                return a.profit > b.profit;
+            });
+
+            // creating slots
+            set<int> slots;
+            for (int i=1;i<=102;i++) slots.insert(i);
+            int JobsDone = 0;
+            int Profit = 0;
+            for (int i=0;i<n;i++) {
+                auto x = slots.upper_bound(arr[i].dead);
+                if (x == slots.end() or x == slots.begin()) continue;
+                slots.erase(--x);
+                JobsDone++;
+                Profit += arr[i].profit;
+            }
+
+            return {JobsDone, Profit};
+        }
+
+
+

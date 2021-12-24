@@ -1,0 +1,41 @@
+
+Version 1.0:
+
+* Starting Time
+* Ending Time
+* Profit
+
+Tell max-profit
+
+Greedy Algorithm:
+        The answer will have some starting Job.
+        All the other Jobs in the ans will have their starting
+        time grater then the ending time of first Job.
+
+        So, it is better to sort the Jobs by their starting time so
+        I can process them in some order.
+
+        I can find the best profit which I will get by considering
+        each Job as the starting Job.
+
+        Now, the problem can be thought of as a dynamic problem.
+
+        Sub-Problems:
+                Given, a series jobs starting from index i.
+                Tell me the max profit which I can get by doing those
+                jobs such that no jobs collapse with each other.
+        Guesses:
+                Guesses will be made about the first Job.
+                a) either i will do the ith job
+                b) I do not do the ith job
+        Expressions:
+                dp[i] = max(dp[i+1], profit[i] + dp[x])
+                Here, x is the index such that the starting point of the
+                Jobs after that is greater than equal to the ending
+                time of the ith job
+        Answering the original problem:
+                return dp[0]
+
+
+
+

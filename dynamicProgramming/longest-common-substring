@@ -1,0 +1,41 @@
+STRUCTURE
+
+Sub-sequence:
+        given two string a and b starting from
+        index i and j respectively, return the length
+        of longest common substrings starting from i and j
+Guesses:
+        a) first two characters are same
+        b) first two characters are not same
+Expressions:
+        if (a[i] == b[j]){
+            dp[i][j] = 1 + dp[i+1][j+1]
+        } else {
+            dp[i][j] = 0
+        }
+        Base Cases
+        if (i == n1 or j == n2) {
+            dp[i][j] = 0;
+        }
+
+
+CODE:
+
+        int longestCommonSubstr (string a, string b, int n, int m)
+        {
+            // your code here
+            vector<vector<int>> dp(n+1, vector<int> (m+1, 0));
+            int ans = 0;
+            for (int i=n-1;i>=0;i--) {
+                for (int j=m-1;j>=0;j--) {
+                    if (a[i] == b[j]){
+                        dp[i][j] = 1 + dp[i+1][j+1];
+                    } else {
+                        dp[i][j] = 0;
+                    }
+                    ans = max(ans, dp[i][j]);
+                }
+            }
+
+            return ans;
+        }

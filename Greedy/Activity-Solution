@@ -1,0 +1,72 @@
+Greedy Algorithm
+
+Repeatedly makes locally optimal solution ignoring the effect on future.
+
+Greedy Properties
+Optimal Sub-structure:
+        Optimal solution to a problem incorporates
+        optimal solution to sub-problems
+Greedy Choice Property:
+        Locally optimal choices leads to globally
+        optimal choices.
+
+Making the greedy choice at current step does not make the
+future solution worse.
+
+
+
+SOLUTION
+
+* Think about the first meeting which will take place?
+
+First meeting will be the one which will end first.
+Because if I do not consider that meeting as the first meeting
+then the ending time of this meeting will surely be greater than
+first one.
+
+Now, I have a new problem where starting time is the ending
+time of the first meeting.
+
+Again choose the optimal solution to this problem i.e the
+meeting which will end first from the starting time.
+
+Hence, local optimals are producing global optimals. The above explanation
+also proves the correctness of the algorithm.
+
+
+CODE:
+
+    int maxMeetings(int start[], int end[], int n)
+    {
+        // Your code here
+        vector<pair<int, int>> ls(n);
+        for(int i=0;i<n;i++){
+            ls[i] = {start[i], end[i]};
+        }
+        sort(ls.begin(), ls.end(), [&](pair<int, int> &a, pair<int, int> &b) {
+            return a.second < b.second;
+        });
+
+        int ending_time = 0;
+        int meetings = 0;
+
+        for (int i=0;i<n;i++) {
+            if (ls[i].first > ending_time) {
+                meetings++;
+                ending_time = ls[i].second;
+            }
+        }
+
+        return meetings;
+
+    }
+
+
+
+
+
+
+
+
+
+
