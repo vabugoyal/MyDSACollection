@@ -1,0 +1,56 @@
+
+
+struct SegTree {
+    int size;
+    vl multi, sums;
+
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        sums.assign(2*size, 1LL);
+        multi.assign(2*size, 1LL);
+        build(0, 0, size);
+    }
+
+    void build(int x, int lx, int rx) {
+        if (rx - lx == 1) return;
+        int mid = (lx + rx) / 2;
+        build(2 * x + 1, lx, mid);
+        build(2 * x + 2, mid, rx);
+
+        sums[x] = add(sums[2 * x + 1], sums[2 * x + 2]);
+    }
+
+
+    void modify(int l, int r, int v){
+        modify(l, r, v, 0, 0, size);
+    }
+
+    void modify(int l, int r, int v, int x, int lx, int rx){
+
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            sums[x] = mul(sums[x], v);
+            multi[x] = mul(multi[x], v);
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, v, 2 * x + 1, lx, mid);
+        modify(l, r, v, 2 * x + 2, mid, rx);
+        sums[x] = mul(add(sums[2 * x + 1], sums[2 * x + 2]), multi[x]);
+    }
+
+    int calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    int calcVal(int l, int r, int x, int lx, int rx){
+        if (l <= lx && r >= rx) return sums[x];
+        if (rx <= l || lx >= r) return 0LL;
+        int mid = (lx + rx) / 2;
+        int s1 = calcVal(l, r, 2 * x + 1, lx, mid);
+        int s2 = calcVal(l, r, 2 * x + 2, mid, rx);
+        return mul(add(s1, s2), multi[x]);
+    }
+};

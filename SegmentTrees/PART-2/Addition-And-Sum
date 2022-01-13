@@ -1,0 +1,66 @@
+
+
+// Set 1 and calc Range
+struct item {
+    int value, time;
+};
+
+
+struct SegTree {
+    int size;
+    vl values, operations, childs;
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        values.assign(2*size, 0LL);
+        operations.assign(2*size, 0LL);
+        childs.assign(2*size, 1LL);
+        build(0, 0, size);
+
+    }
+
+    void build(int x, int lx, int rx){
+        if (rx - lx == 1) return;
+        int mid = (lx + rx) / 2;
+        build(2 * x + 1, lx, mid);
+        build(2 * x + 2, mid, rx);
+        childs[x] = childs[2 * x + 1] + childs[2 * x + 2];
+    }
+
+
+    void modify(int l, int r, int v){
+        modify(l, r, v, 0, 0, size);
+    }
+
+    void modify(int l, int r, int v, int x, int lx, int rx){
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            values[x] += v * childs[x];
+            operations[x] += v;
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, v, 2 * x + 1, lx, mid);
+        modify(l, r, v, 2 * x + 2, mid, rx);
+        values[x] = (values[2 * x + 1] + values[2 * x + 2]) + operations[x] * childs[x];
+    }
+
+    int calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size).ff;
+    }
+
+    pl calcVal(int l, int r, int x, int lx, int rx) {
+        if (rx <= l || r <= lx) return {0, 0};
+        if (l <= lx && rx <= r){
+            return {values[x], childs[x]};
+        }
+        int mid = (lx + rx) / 2;
+        pl left = calcVal(l, r, 2 * x + 1, lx, mid);
+        pl right = calcVal(l, r, 2 * x + 2, mid, rx);
+        pl res = {left.ff + right.ff + operations[x] * (left.ss + right.ss), left.ss + right.ss};
+        return res;
+    }
+
+};
+

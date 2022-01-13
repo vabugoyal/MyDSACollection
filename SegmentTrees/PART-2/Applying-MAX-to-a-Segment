@@ -1,0 +1,80 @@
+
+
+/*
+ * Things to be changed
+ * 1) Item
+ * 2) Get
+ * 3) Add
+ * 4) Neutral
+ * 5) Single
+ */
+
+
+
+// Set 1 and calc Range
+struct item {
+    int value;
+};
+
+
+struct SegTree {
+    int size;
+    vector<item> vals;
+    item const NEUTRAL_ELEMENT = {0};
+
+
+    item merge(item a, item b){
+        return {
+          max(a.value , b.value)
+        };
+    }
+
+    item single(int v) {
+        return {
+            v
+        };
+    }
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        vals.assign(2*size, NEUTRAL_ELEMENT);
+    }
+
+
+    item get(int i){
+        return get(i, 0, 0, size);
+    }
+
+    item get(int i, int x, int lx, int rx){
+        if (rx - lx == 1) {
+            return vals[x];
+        }
+        item res;
+        int mid = (lx + rx) / 2;
+        if (i < mid){
+            res = get(i, 2 * x + 1, lx, mid);
+        } else {
+            res = get(i, 2 * x + 2, mid, rx);
+        }
+        return merge(vals[x], res);
+    }
+
+    void addVal(int l, int r, int v){
+        addVal(l, r, v, 0, 0, size);
+    }
+
+    void addVal(int l, int r, int v, int x, int lx, int rx){
+
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && r >= rx){
+            vals[x] = merge(vals[x], single(v));
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        addVal(l, r, v, 2 * x + 1, lx, mid);
+        addVal(l, r, v, 2 * x + 2, mid, rx);
+    }
+
+};
+

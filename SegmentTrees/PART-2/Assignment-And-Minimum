@@ -1,0 +1,75 @@
+
+// Set 1 and calc Range
+struct item {
+    int value, time;
+};
+
+
+struct SegTree {
+
+    /*
+     * What is stored at a node?
+     * a) the value which is assigned to that segment
+     * b) VOID is value is addigned to some parts of that seg
+     * c) the minimum element in that segment
+     */
+
+    int size, timer = 1;
+    vl values, operations;
+    int const VOID = LLONG_MAX;
+    int const NEUTRAL_ELEMENT = LLONG_MAX-1;
+
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        values.assign(2*size, 0LL);
+        operations.assign(2*size, 0LL);
+    }
+
+
+    void modify(int l, int r, int v){
+        modify(l, r, v, 0, 0, size);
+    }
+
+    void propogate(int x, int lx, int rx){
+        if (rx - lx == 1) return;
+        if (operations[x] == VOID) return;
+        values[2 * x + 1] = operations[x];
+        operations[2 * x + 1] = operations[x];
+        values[2 * x + 2] = operations[x];
+        operations[2 * x + 2] = operations[x];
+        operations[x] = VOID;
+    }
+
+    void modify(int l, int r, int v, int x, int lx, int rx) {
+        propogate(x, lx, rx);
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            values[x] = v;
+            operations[x] = v;
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, v, 2 * x + 1, lx, mid);
+        modify(l, r, v, 2 * x + 2, mid, rx);
+        values[x] = min(values[2 * x + 1], values[2 * x + 2]);
+    }
+
+    int calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    int calcVal(int l, int r, int x, int lx, int rx) {
+        propogate(x, lx, rx);
+        if (rx <= l || r <= lx) return NEUTRAL_ELEMENT;
+        if (l <= lx && rx <= r) {
+            return values[x];
+        }
+        int mid = (lx + rx) / 2;
+        int left = calcVal(l, r, 2 * x + 1, lx, mid);
+        int right = calcVal(l, r, 2 * x + 2, mid, rx);
+        return min(left, right);
+    }
+};
+

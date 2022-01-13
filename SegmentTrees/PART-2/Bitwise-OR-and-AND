@@ -1,0 +1,69 @@
+
+/*
+ * Things to be changed
+ * 1) Item
+ * 2) operation
+ * 3) Single
+ * 4) Neutral
+ */
+
+
+
+
+
+struct SegTree {
+    int size;
+    vl operations, values;
+    ll NEUTRAL_ELEMENT = pow(2, 32) - 1 ;
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        operations.assign(2*size, 0LL);
+        values.assign(2*size, 0LL);
+    }
+
+    int calc(int a, int b){
+        return a & b;
+    }
+
+    void apply(int &a, int b){
+        a = a | b;
+    }
+
+
+    void modify(int l, int r, int v){
+        modify(l, r, v, 0, 0, size);
+    }
+
+    void modify(int l, int r, int v, int x, int lx, int rx){
+
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            apply(values[x], v);
+            apply(operations[x], v);
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, v, 2 * x + 1, lx, mid);
+        modify(l, r, v, 2 * x + 2, mid, rx);
+        values[x] = calc(values[2 * x + 1], values[2 * x + 2]);
+        apply(values[x], operations[x]);
+    }
+
+    int calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    int calcVal(int l, int r, int x, int lx, int rx){
+        if (l <= lx && r >= rx) return values[x];
+        if (rx <= l || lx >= r) return NEUTRAL_ELEMENT;
+        int mid = (lx + rx) / 2;
+        int s1 = calcVal(l, r, 2 * x + 1, lx, mid);
+        int s2 = calcVal(l, r, 2 * x + 2, mid, rx);
+        int res = calc(s1, s2);
+        apply(res, operations[x]);
+        return res;
+    }
+};
+
