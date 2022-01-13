@@ -1,0 +1,105 @@
+------------------------------------------Kruskal's Algo--------------------------------------------------------
+struct Edge {
+    int u, v, w;
+};
+
+struct EdgeComparator {
+    bool operator()(Edge const& e1, Edge const& e2)
+    {
+        // return "true" if "p1" is ordered
+        // before "p2", for example:
+        return e1.w < e2.w;
+    }
+};
+
+
+struct DSU {
+
+    vl par, Rank;
+
+    void init (int n) {
+        par.assign(n + 1, -1);
+        Rank.assign(n + 1, 1);
+    }
+
+    int find(int a){
+        if (par[a] < 0) {
+            return a;
+        }
+        par[a] = find(par[a]);
+        return par[a];
+    }
+
+    void merge(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a == b) return;
+        if (Rank[b] > Rank[a]) swap(a, b);
+        Rank[a] += Rank[b];
+        par[b] = a;
+    }
+
+    int getSize(int x) {
+        return Rank[find(x)];
+    }
+
+};
+
+
+
+int kruskalMST(vector<Edge> &edges, int n) {
+
+    // n is the number of nodes
+    sort(all(edges), [&](Edge a, Edge b) {
+       return a.w < b.w;
+    });
+
+    DSU dsu;
+    dsu.init(n);
+    int MSPWeight = 0;
+    for(Edge edge: edges) {
+        if (dsu.find(edge.v) == dsu.find(edge.u)) continue;
+        MSPWeight |= edge.w;
+        dsu.merge(edge.u, edge.v);
+    }
+
+    int connectedComponentSize = dsu.getSize(1);
+    if (connectedComponentSize == n) {
+        return MSPWeight;
+    } return -1;
+}
+
+------------------------------------------Prims's Algo------------------------------------------------------
+
+
+
+int primsMST(vvpl &graph, int n) {
+
+    vl vis(n + 1, 0);
+    int source = 1; // from which node will we start building MST
+    vis[source] = 1;
+
+    int MSPWeight = 0;
+    priority_queue<pl, vector<pl>, greater<pl>> pq;
+
+    // Adding all the edges going out form the source
+    for(auto [v, w]: graph[source]) {
+        pq.push({w, v});
+    }
+
+
+    while(!pq.empty()){
+        auto e = pq.top(); pq.pop();
+        if (vis[e.ss]) continue;
+        vis[e.ss] = 1;
+        MSPWeight += e.ff;
+        for(auto [v, w]: graph[e.ss]) {
+            pq.push({w, v});
+        }
+    }
+
+    return MSPWeight;
+
+}
+
+
