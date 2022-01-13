@@ -1,0 +1,29 @@
+Greedy Algorithm1:
+        Find the frequency of each character.
+        Sort the frequencies.
+        Lets, say max freq count is x
+        c c c c ...... c
+        There are x - 1 gaps.
+
+        The freq sum of rest of the elements should be at least
+        than x-1.
+
+        CODE:
+
+            string s;
+            cin >> s;
+            vl ls(26, 0);
+            for(auto c: s) {
+                ls[c - 'a']++;
+            }
+            sortv(ls);
+            ll sum = accumulate(all(ls), 0);
+            if (sum - ls[25] >= ls[25]-1){
+                pr(1)
+            } else {
+                pr(0)
+            }
+
+
+Greedy Algorithm2:
+

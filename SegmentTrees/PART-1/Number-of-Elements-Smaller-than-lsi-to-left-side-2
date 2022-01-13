@@ -1,0 +1,90 @@
+
+struct item {
+    int oneCnt;
+};
+
+
+struct SegTree {
+    int size;
+    vector<item> vals;
+    item const NEUTRAL_ELEMENT = {0};
+
+
+    item merge(item a, item b){
+        return {
+            a.oneCnt + b.oneCnt
+        };
+    }
+
+    item single(int v) {
+        return {v};
+    }
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        vals.resize(2*size);
+    }
+
+    void build(vl &a, int x, int lx, int rx) {
+        if (rx - lx == 1){
+            if (lx < sz(a)){
+                vals[x] = single(a[lx]);
+            }
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        build(a, 2 * x + 1, lx, mid);
+        build(a, 2 * x + 2, mid, rx);
+        vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+
+    }
+
+    void build(vl &a){
+        build(a, 0, 0, size);
+    }
+
+    void set(int i, int v){
+        set(i, v, 0, 0, size);
+    }
+
+    void set(int i, int v, int x, int lx, int rx){
+            if (rx - lx == 1) {
+                vals[x] = single(v);
+                return;
+            }
+            int mid = (lx + rx) / 2;
+            if (i < mid){
+                set(i, v, 2 * x + 1, lx, mid);
+            } else {
+                set(i, v, 2 * x + 2, mid, rx);
+            }
+            vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+    }
+
+    item calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    item calcVal(int l, int r, int x, int lx, int rx){
+        if (l <= lx && r >= rx) return vals[x];
+        if (rx <= l || lx >= r) return NEUTRAL_ELEMENT;
+        int mid = (lx + rx) / 2;
+        item s1 = calcVal(l, r, 2 * x + 1, lx, mid);
+        item s2 = calcVal(l, r, 2 * x + 2, mid, rx);
+        return merge(s1, s2);
+    }
+
+    int find(int k) {
+        return find(k, 0, 0, size);
+    }
+
+    int find(int k, int x, int lx, int rx) {
+        if (rx - lx == 1) return lx;
+        int mid = (lx + rx) / 2;
+        if (vals[2 * x + 2].oneCnt > k)
+            return find(k, 2 * x + 2, mid, rx);
+        else
+            return find(k-vals[2 * x + 2].oneCnt, 2 * x + 1, lx, mid);
+    }
+};

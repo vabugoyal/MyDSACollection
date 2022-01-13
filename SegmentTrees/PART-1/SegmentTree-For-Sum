@@ -1,0 +1,46 @@
+
+struct segtree
+{
+    int size;
+    vector<ll> values;
+
+    void init(int n){
+        size = 1;
+        while (size < n) size *= 2;
+        values.assign(2*size, LLONG_MAX);
+    }
+
+    void set(int i, int v, int x, int lx, int rx){
+        if (rx - lx == 1) {
+            values[x] = v;
+            return;
+        }
+        int m = (lx + rx) / 2;
+        if (i < m){
+            set(i, v, 2*x+1, lx, m);
+        }
+        else{
+            set(i, v, 2*x + 2, m, rx);
+        }
+        values[x] = min(values[2*x + 1] , values[2*x + 2]);
+    }
+
+    void set(int i, ll v){
+        set(i, v, 0, 0, size);
+    }
+
+    ll calc(int l, int r, int x, int lx, int rx){
+        if (l >= rx || r <= lx){
+            return LLONG_MAX;
+        }
+        if (l <= lx and rx <= r) return values[x];
+        int m = (lx + rx) / 2;
+        ll s1 = calc(l, r, 2*x + 1, lx, m);
+        ll s2 = calc(l, r, 2*x + 2, m, rx);
+        return min(s1 , s2);
+    }
+
+    ll calc(int l, int r){
+        return calc(l, r, 0, 0, size);
+    }
+};

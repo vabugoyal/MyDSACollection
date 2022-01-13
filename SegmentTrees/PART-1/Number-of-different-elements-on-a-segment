@@ -1,0 +1,87 @@
+// Set 1 and calc Range
+struct item {
+    vl pres;
+};
+
+
+struct SegTree {
+    int size;
+    vector<item> vals;
+    item const NEUTRAL_ELEMENT = {{vl(41, 0)}};
+
+
+    item merge(item a, item b){
+        vl merged(41, 0);
+        f(i, 41){
+            if (a.pres[i]) merged[i] = 1;
+        }
+        f(i, 41){
+            if (b.pres[i]) merged[i] = 1;
+        }
+        return {
+          merged
+        };
+    }
+
+    item single(int v) {
+        vl s(41, 0);
+        s[v] = 1;
+        return {s};
+    }
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        vals.assign(2*size, NEUTRAL_ELEMENT);
+    }
+
+    void build(vector<int> &a, int x, int lx, int rx) {
+        if (rx - lx == 1){
+            if (lx < sz(a)){
+                vals[x] = single(a[lx]);
+            }
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        build(a, 2 * x + 1, lx, mid);
+        build(a, 2 * x + 2, mid, rx);
+        vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+
+    }
+
+    void build(vector<int> &a){
+        build(a, 0, 0, size);
+    }
+
+    void setEle(int i, int v){
+        setEle(i, v, 0, 0, size);
+    }
+
+    void setEle(int i, int v, int x, int lx, int rx){
+        if (rx - lx == 1) {
+            vals[x] = single(v);
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        if (i < mid){
+            setEle(i, v, 2 * x + 1, lx, mid);
+        } else {
+            setEle(i, v, 2 * x + 2, mid, rx);
+        }
+        vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+    }
+
+    item calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    item calcVal(int l, int r, int x, int lx, int rx){
+        if (l <= lx && r >= rx) return vals[x];
+        if (rx <= l || lx >= r) return NEUTRAL_ELEMENT;
+        int mid = (lx + rx) / 2;
+        item s1 = calcVal(l, r, 2 * x + 1, lx, mid);
+        item s2 = calcVal(l, r, 2 * x + 2, mid, rx);
+        return merge(s1, s2);
+    }
+
+};

@@ -14,7 +14,7 @@ CODE:
 
                 string ans = a;
                 map<char, int> occured;
-                set<char> unique;
+                selEle<char> unique;
                 for(auto c: a) unique.insert(c);
                 for (auto u: unique) {
                     // first non-accuring should be u

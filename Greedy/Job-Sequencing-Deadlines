@@ -39,7 +39,7 @@ CODE:
             });
 
             // creating slots
-            set<int> slots;
+            selEle<int> slots;
             for (int i=1;i<=102;i++) slots.insert(i);
             int JobsDone = 0;
             int Profit = 0;
