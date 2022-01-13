@@ -1,0 +1,100 @@
+
+
+// Set 1 and calc Range
+struct item {
+    int ones, op;
+};
+
+
+struct SegTree {
+
+    int size;
+    vector<item> nodes;
+    int const VOID = LLONG_MAX;
+    item const NEUTRAL_ELEMENT = {0, 0};
+
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        nodes.assign(2*size, NEUTRAL_ELEMENT);
+    }
+
+    item modify_op(item x, int v, int lx, int rx) {
+        if (v % 2 == 0) return x;
+        return {
+                (rx - lx) - x.ones,
+                v + x.op
+        };
+    }
+
+    item calc_op(item a, item b, item x) {
+        return {
+                a.ones + b.ones,
+                0
+        };
+    }
+
+    void apply_mod_op(item &a, int v, int lx, int rx){
+        a = modify_op(a , v, lx, rx);
+    }
+
+    void propogate(int x, int lx, int rx){
+        if (rx - lx == 1) return;
+        if (nodes[x].op == VOID) return;
+        int mid = (lx + rx) / 2;
+        apply_mod_op(nodes[2 * x + 1], nodes[x].op, lx, mid);
+        apply_mod_op(nodes[2 * x + 2], nodes[x].op, mid, rx);
+        nodes[x].op = 0;
+    }
+
+    void modify(int l, int r){
+        modify(l, r, 0, 0, size);
+    }
+
+    void modify(int l, int r, int x, int lx, int rx) {
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            apply_mod_op(nodes[x], 1, lx, rx);
+            return;
+        }
+        propogate(x, lx, rx);
+        int mid = (lx + rx) / 2;
+        modify(l, r, 2 * x + 1, lx, mid);
+        modify(l, r, 2 * x + 2, mid, rx);
+        nodes[x] = calc_op(nodes[2 * x + 1], nodes[2 * x + 2], nodes[x]);
+    }
+
+    int find(int k){
+        return find(k, 0, 0, size);
+    }
+
+    int find(int k, int x, int lx, int rx) {
+        if (k < 0 || nodes[x].ones-1 < k) return -1;
+        if (rx - lx == 1) {
+            return lx;
+        }
+        propogate(x, lx, rx);
+        int mid = (lx + rx) / 2;
+        int s1 = find(k, 2 * x + 1, lx, mid);
+        int s2 = find(k-nodes[2 * x + 1].ones, 2 * x + 2, mid, rx);
+        return max(s1, s2);
+
+    }
+
+//    int calcVal(int l, int r){
+//        return calcVal(l, r, 0, 0, size).seg;
+//    }
+//
+//    item calcVal(int l, int r, int x, int lx, int rx) {
+//        if (rx <= l || r <= lx) return NEUTRAL_ELEMENT;
+//        if (l <= lx && rx <= r) {
+//            return nodes[x];
+//        }
+//        propogate(x, lx, rx);
+//        int mid = (lx + rx) / 2;
+//        item left = calcVal(l, r, 2 * x + 1, lx, mid);
+//        item right = calcVal(l, r, 2 * x + 2, mid, rx);
+//        return calc_op(left, right);
+//    }
+};
