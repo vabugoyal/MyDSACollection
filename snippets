@@ -1,0 +1,399 @@
+
+-------------------------------------------NCR COMPUTATIONS---------------------------------------------------------
+
+vector<ll> fact(mxn,0), in (mxn, 0);
+
+ll mpow(ll base, ll exp){
+    ll res = 1;
+    while(exp > 0){
+        if(exp&1) res = (res*base)%mod;
+        base = (base*base) % mod;
+        exp >>= 1;
+    }
+    return res;
+}
+
+ll inv(ll v){
+    if(v<=1) return v;
+    return (inv(mod%v) * (mod - mod/v)) % mod;
+}
+
+void calc_fact(){
+    fact[0] = 1;
+    fact[1] = 1;
+    in[1] = 1;
+    in[0] = 1;
+    for(ll i=2; i<mxn; i++){
+        fact[i] = (fact[i-1] * i)%mod;
+        in[i] = (in[i-1] * mpow(i, mod - 2)) %mod;
+        // in[i] = (in[i-1] * inv(i) %mod
+    }
+}
+
+ll ncr(ll N, ll r){
+    ll ans = fact[N];
+    ans = (ans * in[r])%mod;
+    ans = (ans * in[N-r])%mod;
+    return ans;
+}
+
+-----------------------------------------------Prime Factorization-------------------------------------------
+
+int gcd(int a, int b) {
+    if (!a || !b)
+        return a | b;
+    unsigned shift = __builtin_ctz(a | b);
+    a >>= __builtin_ctz(a);
+    do {
+        b >>= __builtin_ctz(b);
+        if (a > b)
+            swap(a, b);
+        b -= a;
+    } while (b);
+    return a << shift;
+}
+
+
+vector<int> is_prime(mxn, false);
+
+void factors_seive() {
+    for (int i = 2; i < mxn; i++) {
+        if (is_prime[i]) continue;
+        int j = 1;
+        while(i * j < mxn){
+            if (!is_prime[i * j]) {
+                is_prime[i * j] = i;
+            }
+            j++;
+        }
+    }
+}
+
+
+vector<int> factors(int x) {
+
+    vector<int> ans;
+    int n = x;
+    while(is_prime[n]){
+        ll prime = is_prime[n];
+        while(n % prime == 0) {
+            n /= prime;
+            ans.push_back(prime);
+        }
+    }
+    sort(all(ans));
+    return ans;
+}
+
+
+
+-----------------------------------------------Disjoint Set Union---------------------------------------------------
+
+
+struct DSU {
+
+    vl par, Rank;
+
+    void init (int n) {
+        par.assign(n + 1, -1);
+        Rank.assign(n + 1, 1);
+    }
+
+    int find(int a){
+        if (par[a] < 0) {
+            return a;
+        }
+        return par[a] = find(par[a]);
+    }
+
+    void merge(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a == b) return;
+        if (Rank[b] > Rank[a]) swap(a, b);
+        Rank[a] += Rank[b];
+        par[b] = a;
+    }
+
+};
+
+
+-----------------------------------------------Segment Tree (Single Update)-------------------------------------------------------------
+
+
+/*
+ * Things to be changed
+ * 1) Item
+ * 2) Merge
+ * 3) Single
+ * 4) Neutral
+ */
+
+
+// Set 1 and calc Range
+struct item {
+    int oneCnt;
+};
+
+
+struct SegTree {
+    int size;
+    vector<item> vals;
+    item const NEUTRAL_ELEMENT = {0};
+
+
+    item merge(item a, item b){
+        return {
+            a.oneCnt + b.oneCnt
+        };
+    }
+
+    item single(int v) {
+        return {v};
+    }
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        vals.resize(2*size);
+    }
+
+    void build(vl &a, int x, int lx, int rx) {
+        if (rx - lx == 1){
+            if (lx < sz(a)){
+                vals[x] = single(a[lx]);
+            }
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        build(a, 2 * x + 1, lx, mid);
+        build(a, 2 * x + 2, mid, rx);
+        vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+
+    }
+
+    void build(vl &a){
+        build(a, 0, 0, size);
+    }
+
+    void set(int i, int v){
+        set(i, v, 0, 0, size);
+    }
+
+    void set(int i, int v, int x, int lx, int rx){
+            if (rx - lx == 1) {
+                vals[x] = single(v);
+                return;
+            }
+            int mid = (lx + rx) / 2;
+            if (i < mid){
+                set(i, v, 2 * x + 1, lx, mid);
+            } else {
+                selEle(i, v, 2 * x + 2, mid, rx);
+            }
+            vals[x] = merge(vals[2 * x + 1], vals[2 * x + 2]);
+    }
+
+    item calcVal(int l, int r){
+        return calcVal(l, r, 0, 0, size);
+    }
+
+    item calcVal(int l, int r, int x, int lx, int rx){
+        if (l <= lx && r >= rx) return vals[x];
+        if (rx <= l || lx >= r) return NEUTRAL_ELEMENT;
+        int mid = (lx + rx) / 2;
+        item s1 = calcVal(l, r, 2 * x + 1, lx, mid);
+        item s2 = calcVal(l, r, 2 * x + 2, mid, rx);
+        return merge(s1, s2);
+    }
+
+    int find(int k, int l) {
+        return find(k, l, 0, 0, size);
+    }
+
+    int find(int k, int l, int x, int lx, int rx) {
+        if (vals[x].oneCnt < k) return -1;
+        if (rx <= l) return -1;
+        if (rx - lx == 1) return lx;
+        int mid = (lx + rx) / 2;
+        int res = find(k, l, 2 * x + 1, lx, mid);
+        if (res == -1){
+            res = find(k, l, 2 * x + 2, mid, rx);
+        }
+        return res;
+    }
+};
+
+
+
+-----------------------------------------------Segment Tree (Mass Update)-------------------------------------------------------------
+
+
+// Set 1 and calc Range
+struct item {
+    int value, time;
+};
+
+
+struct SegTree {
+    int size;
+    vector<item> vals;
+    item const NEUTRAL_ELEMENT = {0, 0};
+    int timer = 1;
+
+    item operation(item a, item b){
+        if (a.time > b.time) return a;
+        else return b;
+    }
+
+    item single(int v) {
+        return {
+                v, timer++
+        };
+    }
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        vals.assign(2*size, NEUTRAL_ELEMENT);
+    }
+
+
+    item get(int i){
+        return get(i, 0, 0, size);
+    }
+
+    item get(int i, int x, int lx, int rx){
+        if (rx - lx == 1) {
+            return vals[x];
+        }
+        item res;
+        int mid = (lx + rx) / 2;
+        if (i < mid){
+            res = get(i, 2 * x + 1, lx, mid);
+        } else {
+            res = get(i, 2 * x + 2, mid, rx);
+        }
+        return operation(vals[x], res);
+    }
+
+    void modify(int l, int r, int v){
+        modify(l, r, v, 0, 0, size);
+    }
+
+    void modify(int l, int r, int v, int x, int lx, int rx){
+
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            vals[x] = operation(vals[x], single(v));
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, v, 2 * x + 1, lx, mid);
+        modify(l, r, v, 2 * x + 2, mid, rx);
+    }
+
+};
+
+
+
+
+// Set 1 and calc Range
+struct item {
+    int ones, op;
+};
+
+
+struct SegTree {
+
+    int size;
+    vector<item> nodes;
+    int const VOID = LLONG_MAX;
+    item const NEUTRAL_ELEMENT = {0, 0};
+
+
+    void init(int n) {
+        size = 1;
+        while(size < n) size *= 2;
+        nodes.assign(2*size, NEUTRAL_ELEMENT);
+    }
+
+    item modify_op(item x, int v, int lx, int rx) {
+        if (v % 2 == 0) return x;
+        return {
+                (rx - lx) - x.ones,
+                v + x.op
+        };
+    }
+
+    item calc_op(item a, item b, item x) {
+        return {
+                a.ones + b.ones,
+                0
+        };
+    }
+
+    void apply_mod_op(item &a, int v, int lx, int rx){
+        a = modify_op(a , v, lx, rx);
+    }
+
+    void propogate(int x, int lx, int rx){
+        if (rx - lx == 1) return;
+        if (nodes[x].op == VOID) return;
+        int mid = (lx + rx) / 2;
+        apply_mod_op(nodes[2 * x + 1], nodes[x].op, lx, mid);
+        apply_mod_op(nodes[2 * x + 2], nodes[x].op, mid, rx);
+        nodes[x].op = 0;
+    }
+
+    void modify(int l, int r){
+        modify(l, r, 0, 0, size);
+    }
+
+    void modify(int l, int r, int x, int lx, int rx) {
+        if (rx <= l || lx >= r) return;
+        if (l <= lx && rx <= r){
+            apply_mod_op(nodes[x], 1, lx, rx);
+            return;
+        }
+        propogate(x, lx, rx);
+        int mid = (lx + rx) / 2;
+        modify(l, r, 2 * x + 1, lx, mid);
+        modify(l, r, 2 * x + 2, mid, rx);
+        nodes[x] = calc_op(nodes[2 * x + 1], nodes[2 * x + 2], nodes[x]);
+    }
+
+    int find(int k){
+        return find(k, 0, 0, size);
+    }
+
+    int find(int k, int x, int lx, int rx) {
+        if (k < 0 || nodes[x].ones-1 < k) return -1;
+        if (rx - lx == 1) {
+            return lx;
+        }
+        propogate(x, lx, rx);
+        int mid = (lx + rx) / 2;
+        int s1 = find(k, 2 * x + 1, lx, mid);
+        int s2 = find(k-nodes[2 * x + 1].ones, 2 * x + 2, mid, rx);
+        return max(s1, s2);
+
+    }
+
+//    int calcVal(int l, int r){
+//        return calcVal(l, r, 0, 0, size).seg;
+//    }
+//
+//    item calcVal(int l, int r, int x, int lx, int rx) {
+//        if (rx <= l || r <= lx) return NEUTRAL_ELEMENT;
+//        if (l <= lx && rx <= r) {
+//            return nodes[x];
+//        }
+//        propogate(x, lx, rx);
+//        int mid = (lx + rx) / 2;
+//        item left = calcVal(l, r, 2 * x + 1, lx, mid);
+//        item right = calcVal(l, r, 2 * x + 2, mid, rx);
+//        return calc_op(left, right);
+//    }
+};
+
