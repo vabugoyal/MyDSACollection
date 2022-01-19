@@ -51,7 +51,7 @@ pair<int, vl> findEulerianPathUndirected(vvl &g, int n, int m){
     if (startNode == -1) startNode = 1;
 
 
-    // eulerian path does not exists
+    // eulerian cycle does not exists
     if (oddDegree){
         return {0, {}};
     }

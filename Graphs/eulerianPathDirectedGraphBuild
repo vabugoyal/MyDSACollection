@@ -1,0 +1,72 @@
+// --------------------------------------------Finding Eulerian Circuit in a Graph-------------------------------------
+
+void dfsEulerian(vector<multiset<int>> &g, vl &outdegree, vl &path, int start) {
+    while(outdegree[start]){
+        auto neigh = g[start].begin();
+        int neighVal = *neigh;
+
+        // erase the edge from start to neigh
+        g[start].erase(neigh);
+
+        // decreading the degree of both the nodes
+        outdegree[start]--;
+        dfsEulerian(g, outdegree, path, neighVal);
+    }
+    path.push_back(start);
+
+}
+
+void bulidEulerianPathDirected(vector<multiset<int>> &g, vl &outdegree, vl &path, int start) {
+
+    // build the eulerian path starting form the start node
+    dfsEulerian(g, outdegree, path, start);
+    reverse(all(path));
+
+}
+
+pair<int, vl> findEulerianPathDirected(vvl &g, int n, int m){
+    vl path, indegree(n + 1, 0), outdegree(n + 1, 0);
+    int eulerianPathExists = true;
+
+    // finding in and out degrees of each node
+    F(i, n){
+        for (auto x: g[i]){
+            outdegree[i]++; indegree[x]++;
+        }
+    }
+
+    // checking the existence of eulerian path
+    int startNode = -1, endNode = -1, startNodes = 0, endNodes = 0;
+    F(i, n){
+        if (abs(indegree[i] - outdegree[i]) > 1) eulerianPathExists = false;
+        if (outdegree[i] - indegree[i] == 1) startNodes++, startNode = i;
+        if (indegree[i] - outdegree[i] == 1) endNodes++, endNode = i;
+    }
+
+
+    // eulerian path does not exists
+    if (!((startNodes == 0 && endNodes == 0) || (startNodes == 1 && endNodes == 1))){
+        return {0, {}};
+    }
+
+
+
+    // making a new graph for building eulerian paths
+    vector<multiset<int>> graph(n + 1);
+    F(i, n){
+        for (auto x: g[i]) {
+            graph[i].insert(x);
+        }
+    }
+
+
+    bulidEulerianPathDirected(graph, outdegree, path, startNode);
+
+
+    // all the edges of the graph must be in the same connected component
+    if (path.size() != m + 1) {
+        return {0, {}};
+    }
+    return {1, path};
+
+}
