@@ -59,7 +59,7 @@ int kruskalMST(vector<Edge> &edges, int n) {
     int MSPWeight = 0;
     for(Edge edge: edges) {
         if (dsu.find(edge.v) == dsu.find(edge.u)) continue;
-        MSPWeight |= edge.w;
+        MSPWeight += edge.w;
         dsu.merge(edge.u, edge.v);
     }
 

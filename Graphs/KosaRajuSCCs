@@ -1,0 +1,43 @@
+
+void dfsRunningTimes(int start, vvl &g, vl &vis, stack<int> &s){
+    if (vis[start]) return;
+    vis[start] = 1;
+    for (auto neigh: g[start]){
+        dfsRunningTimes(neigh, g, vis, s);
+    }
+    s.push(start);
+}
+
+void bulidSCCs(int start, int nodesID, vl &SCCs, vl &vis, vvl&rgraph){
+    if (vis[start]) return;
+    vis[start] = 1;
+    SCCs[start] = nodesID;
+    for (auto neigh: rgraph[start]){
+        bulidSCCs(neigh, nodesID, SCCs, vis, rgraph);
+    }
+}
+
+
+pair<int, vl> kosaRajuSCCs(vvl &graph, vvl &rgraph, int n){
+    // given a graph and a r graph, it will return the SCCs in that graph
+    vl vis(n + 1), SCCs(n + 1);
+    stack<int> finshingDFS;
+    int id = 1, components = 0;
+
+    // storing the nodes by ending times of their dfs
+    f(i, n + 1){
+        if (i == 0 || vis[i]) continue;
+        dfsRunningTimes(i, graph, vis, finshingDFS);
+    }
+
+    vis.assign(n + 1, 0);
+    while(!finshingDFS.empty()){
+        int node = finshingDFS.top(); finshingDFS.pop();
+        if (vis[node]) continue;
+        bulidSCCs(node, id++, SCCs, vis, rgraph);
+        components++;
+    }
+
+    return {components, SCCs};
+}
+

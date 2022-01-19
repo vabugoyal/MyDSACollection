@@ -1,0 +1,32 @@
+//---------------------------------------------TopoSort using Kahn's Method------------------------------------
+
+pair<int, vl> topoSort(vvl &graph, int n) {
+    // given a graph: it will return the topological order of the given graph
+    vl indegree(n + 1, 0), topoOrder;
+    int topologicalOrderExists;
+    F(i, n){
+        for (auto x: graph[i]){
+            indegree[x]++;
+        }
+    }
+    queue<int> q;
+    F(i, n){
+        if (indegree[i] == 0) q.push(i);
+    }
+    while(!q.empty()){
+        int node = q.front(); q.pop();
+        topoOrder.push_back(node);
+        for (auto neigh: graph[node]){
+            indegree[neigh]--;
+            if (indegree[neigh] == 0) q.push(neigh);
+        }
+    }
+
+    topologicalOrderExists = accumulate(all(indegree), 0LL) == 0;
+    if (topologicalOrderExists){
+        return {1, topoOrder};
+    } else {
+        return {0, {}};
+    }
+
+}

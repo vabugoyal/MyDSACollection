@@ -1,0 +1,240 @@
+// CSES PROBLEM: COIN COLLECTOR
+
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
+
+// shortforms
+#define pb          push_back
+#define ff          first
+#define mp          make_pair
+#define ss          second
+#define pr(x)       cout << x << '\n';
+#define prc(x)      cout << x << ' ';
+#define br          pr("");
+#define endl        '\n'
+#define all(v)      v.begin(), v.end()
+#define int         long long
+
+#define f(i, N) for(int i=0; i < N; i++)
+#define F(i, N) for(int i=1; i <= N; i++)
+#define sortv(v) sort(v.begin(), v.end());
+#define read(v) for(auto &x: v) cin >> x;
+#define sz(v) (ll)(v.size())
+#define uniq(v) sort(A.begin(),A.end());A.erase(unique(A.begin(),A.end()),A.end());
+#define ones(x) __builtin_popcountll(x)
+
+typedef long long ll;
+
+// arrays
+using vl = vector<int>;
+using vvl = vector<vector<int>>;
+using pl = pair<int, int>;
+using vpl = vector<pl>;
+using vvpl = vector<vector<pl>>;
+
+
+// printers
+#define pr2(x1, x2) prc(x1)pr(x2)
+#define pr3(x1, x2, x3) prc(x1)prc(x2)pr(x3)
+#define pr4(x1, x2, x3, x4) prc(x1)prc(x2)prc(x3)pr(x4)
+#define show(A) for (auto &i: A) cout << i << " "; cout << '\n';
+#define show_(A, n) f(i, n) { show(A[i]) }
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+
+// CONSTANTS
+const double eps = 1e-4;
+int mod = 1e9 + 7;
+const int inf = 1e18;
+const int mxn =  2 * 100007;
+//const int mxn =  6;
+const int bits = 60;
+const int dim = 1e9;
+
+const vpl movements = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+#define check(n, pos) (n & (1LL << pos))
+#define sett(n, pos) (n | (1LL << pos))
+#define unset(n, pos) (n & ~(1LL << pos))
+#define add(a, b) (((a % mod) + (b % mod) + mod) % mod)
+#define sub(a, b) (((a % mod) - (b % mod) + mod) % mod)
+#define mul(a, b) (((a % mod) * (b % mod) + mod) % mod)
+
+
+void dfsRunningTimes(int start, vvl &g, vl &vis, stack<int> &s){
+    if (vis[start]) return;
+    vis[start] = 1;
+    for (auto neigh: g[start]){
+        dfsRunningTimes(neigh, g, vis, s);
+    }
+    s.push(start);
+}
+
+void bulidSCCs(int start, int nodesID, vl &SCCs, vl &vis, vvl&rgraph){
+    if (vis[start]) return;
+    vis[start] = 1;
+    SCCs[start] = nodesID;
+    for (auto neigh: rgraph[start]){
+        bulidSCCs(neigh, nodesID, SCCs, vis, rgraph);
+    }
+}
+
+pair<int, vl> kosaRajuSCCs(vvl &graph, vvl &rgraph, int n){
+    // given a graph and a r graph, it will return the SCCs in that graph
+    vl vis(n + 1), SCCs(n + 1);
+    stack<int> finshingDFS;
+    int id = 1, components = 0;
+
+    // storing the nodes by ending times of their dfs
+    f(i, n + 1){
+        if (i == 0 || vis[i]) continue;
+        dfsRunningTimes(i, graph, vis, finshingDFS);
+    }
+
+    vis.assign(n + 1, 0);
+    while(!finshingDFS.empty()){
+        int node = finshingDFS.top(); finshingDFS.pop();
+        if (vis[node]) continue;
+        bulidSCCs(node, id++, SCCs, vis, rgraph);
+        components++;
+    }
+
+    return {components, SCCs};
+}
+
+
+pair<int, vl> topoSort(vvl &graph, int n) {
+    // given a graph: it will return the topological order of the given graph
+    vl indegree(n + 1, 0), topoOrder;
+    int topologicalOrderExists;
+    F(i, n){
+        for (auto x: graph[i]){
+            indegree[x]++;
+        }
+    }
+    queue<int> q;
+    F(i, n){
+        if (indegree[i] == 0) q.push(i);
+    }
+    while(!q.empty()){
+        int node = q.front(); q.pop();
+        topoOrder.push_back(node);
+        for (auto neigh: graph[node]){
+            indegree[neigh]--;
+            if (indegree[neigh] == 0) q.push(neigh);
+        }
+    }
+
+    topologicalOrderExists = accumulate(all(indegree), 0LL) == 0;
+    if (topologicalOrderExists){
+        return {1, topoOrder};
+    } else {
+        return {0, {}};
+    }
+
+}
+
+
+struct Solution {
+
+    // variables
+    vvl graph, rgraph, compressedGraph;
+    vl money, dp, topoOrder;
+    map<int, int> memo;
+    int n, m, ans = 0;
+
+    void solve() {
+        cin >> n >> m;
+        graph.resize(n + 1);
+        rgraph.resize(n + 1);
+        money.assign(n + 1, 0);
+        f(i, n) cin >> money[i + 1];
+        f(i, m){
+            int a, b;
+            cin >> a >> b;
+            graph[a].push_back(b);
+            rgraph[b].push_back(a);
+        }
+
+        // finding the topological order in the graph
+        auto [components, SCCs] = kosaRajuSCCs(graph, rgraph, n);
+        f(i, n + 1){
+            if (i == 0) continue;
+            memo[SCCs[i]] += money[i];
+        }
+
+        compressedGraph.resize(components + 1);
+        dp.resize(components + 1);
+
+        F(i, n){
+            for (auto x: graph[i]){
+                if (SCCs[i] == SCCs[x]) continue;
+                compressedGraph[SCCs[i]].push_back(SCCs[x]);
+            }
+        }
+
+
+        auto [topoorderExists, topoOrder] = topoSort(compressedGraph, components);
+
+        for (int i = components - 1; i >= 0; --i) {
+            int node = topoOrder[i];
+            int SCCVal = memo[node];
+            dp[node] = SCCVal;
+            for (auto neigh: compressedGraph[node]){
+                dp[node] = max(dp[node], SCCVal + dp[neigh]);
+            }
+        }
+
+        ans = *max_element(all(dp));
+        pr(ans)
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+};
+
+
+
+
+
+
+
+int32_t main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+#ifndef ONLINE_JUDGE
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
+
+
+//    Functions Called
+//    seive();
+//    factors_seive();
+//    calc_fact();
+
+    int tc = 1;
+
+//    cin >> tc;
+
+    for (int t = 1; t <= tc; t++) {
+        Solution solution;
+        solution.solve();
+    }
+    return 0;
+}
