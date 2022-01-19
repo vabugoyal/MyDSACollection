@@ -1,0 +1,74 @@
+// Finding Eulerian Paths and Circuits in a Graph
+// The following code is for Eulerian Circuit
+
+void dfsEulerian(vector<multiset<int>> &g, vl &degree, vl &path, int start) {
+    while(degree[start]){
+        auto neigh = g[start].begin();
+        int neighVal = *neigh;
+
+        // erase the edge from start to neigh
+        g[start].erase(neigh);
+
+        // erase the edge from neigh to start
+        g[neighVal].erase(g[neighVal].lower_bound(start));
+
+        // decreading the degree of both the nodes
+        degree[start]--, degree[neighVal]--;
+        dfsEulerian(g, degree, path, neighVal);
+    }
+    path.push_back(start);
+
+}
+
+void bulidEulerianPathUndirected(vector<multiset<int>> &g, vl &degree, vl &path, int start) {
+
+    // build the eulerian path starting form the start node
+    dfsEulerian(g, degree, path, start);
+
+}
+
+pair<int, vl> findEulerianPathUndirected(vvl &g, int n, int m){
+    vl degree(n + 1, 0), path;
+    int eulerianPathExists = true;
+
+    // finding in and out degrees of each node
+    F(i, n){
+        for (auto x: g[i]){
+            degree[i]++; degree[x]++;
+        }
+    }
+
+    F(i, n) degree[i] /= 2;
+
+
+    // checking the existence of eulerian path
+    int startNode = -1, oddDegree = 0, evenDegree = 0;
+    F(i, n){
+        if (degree[i] & 1) oddDegree++;
+        else evenDegree++;
+        if (degree[i] & 1) startNode = i;
+    }
+    if (startNode == -1) startNode = 1;
+
+
+    // eulerian path does not exists
+    if (oddDegree){
+        return {0, {}};
+    }
+
+    vector<multiset<int>> graph(n + 1);
+    F(i, n){
+        for (auto x: g[i]) {
+            graph[i].insert(x);
+        }
+    }
+
+    bulidEulerianPathUndirected(graph, degree, path, startNode);
+
+    // all the edges of the graph must be in the same connected component
+    if (path.size() != m + 1) {
+        return {0, {}};
+    }
+    return {1, path};
+
+}
