@@ -1,0 +1,77 @@
+METHOD 1: BRUTE FORCE (BACKTRACKING)
+
+TIME COMPLEXITY: O(N ^ N)
+
+
+
+METHOD 2: USING SUBSETS
+https://www.hackerearth.com/practice/algorithms/graphs/hamiltonian-path/tutorial/
+
+
+int dp[20][(1 << 20)];
+
+
+struct Solution {
+
+    // variables
+    int n, m;
+    vvl graph;
+
+    void solve() {
+        cin >> n >> m;
+        graph.assign(n, vl(n, 0));
+
+        f(i, m){
+            int a, b; cin >> a >> b;
+            a--; b--;
+            // flight from city a to city b
+            graph[a][b] += 1;
+        }
+
+        int ans = findHamiltonianCycles();
+        pr(ans);
+    }
+
+
+    int findHamiltonianCycles() {
+
+        // initialising the dp
+        for (int i = 0; i < (1 << n); ++i) {
+            for (int j = 0; j < n; ++j) {
+                dp[j][i] = 0;
+            }
+        }
+
+        // Base Cases : Cycles starting only form node 1
+        dp[0][1] = 1;
+
+        // building the dp
+        for (int i = 0; i < (1 << n); ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (check(i, j)){
+                    // jth bit is set in i
+                    for (int k = 0; k < n; ++k) {
+                        if (j != k && check(i, k) && graph[k][j]){
+                            // kth bit is set in i and there is an edge from k to j
+                            dp[j][i] = add(dp[j][i], mul(graph[k][j], dp[k][i ^ (1 << j)]));
+                        }
+                    }
+                }
+            }
+        }
+
+        return dp[n - 1][(1 << n) - 1];
+    }
+
+};
+
+
+TIME COMPLEXITY: O(N ^ 2 * (2 ^ N))
+
+
+
+METHOD 3:
+
+OPTIMISATION:
+
+

@@ -1,0 +1,77 @@
+struct trieNode {
+    trieNode * left, * right;
+};
+
+struct TRIE {
+
+    trieNode * head = new trieNode();
+    // ith bit on  : move to right
+    // ith bit off : move to left
+
+
+    void insert(int x) {
+        trieNode * curr = head;
+        rep(i, 64, 0){
+            if (check(i, x)){
+                // move to right
+                if (!curr->right){
+                    curr->right = new trieNode();
+                }
+                curr = curr->right;
+            } else {
+                // move to left
+                if (!curr->left) {
+                    curr->left = new trieNode();
+                }
+                curr = curr->left;
+            }
+        }
+    }
+
+    int findBestXORPossible(int x) {
+
+        trieNode * curr = head;
+        int XOR = 0;
+        rep(i, 64, 0) {
+            if (check(i, x)){
+                // try to move left
+                if (curr->left){
+                    curr = curr->left;
+                    XOR += (1LL << i);
+                } else {
+                    curr = curr->right;
+                }
+            } else {
+                // try to move right
+                if (curr->right){
+                    curr = curr->right;
+                    XOR += (1LL << i);
+                } else {
+                    curr = curr->left;
+                }
+            }
+        }
+
+        return XOR;
+
+    }
+
+    int findMaxXORPairVal(vl &ls, int n) {
+
+        // inserting all the elements in the trie
+        for (auto &x : ls) {
+            insert(x);
+        }
+
+        int maxXORPair = 0;
+
+        // finding the maxXOR pair
+        for (auto &x: ls){
+            maxXORPair = max({maxXORPair, findBestXORPossible(x)});
+        }
+
+        return maxXORPair;
+    }
+
+
+};
