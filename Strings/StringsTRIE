@@ -1,0 +1,56 @@
+struct trieNode {
+    trieNode ** children;
+    int weight;
+
+    trieNode() {
+        children = new trieNode * [26];
+        f(i, 26) children[i] = NULL;
+        weight = 0;
+    }
+};
+
+struct TRIE {
+
+    trieNode * head;
+    // Best String : string contaning the prefix with max weight
+
+    void init() {
+        head = new trieNode();
+    }
+
+    void insert(string s, int w){
+        trieNode * curr = head;
+        f(i, s.size()){
+            int x = s[i] - 'a';
+            if (!curr->children[x]){
+                curr->children[x] = new trieNode();
+            }
+            curr->children[x]->weight = max(curr->children[x]->weight, w);
+            curr = curr->children[x];
+        }
+    }
+
+    int findBestWeightString(string s){
+        trieNode * curr = head;
+        int bestWeight = 0;
+        f(i, s.size()){
+            int x = s[i] - 'a';
+            if (!curr->children[x]){
+                // string comtaning this prefix does not exist
+                bestWeight = - 1; break;
+            }
+            bestWeight = curr->children[x]->weight;
+            curr = curr->children[x];
+        }
+
+        return bestWeight;
+    }
+
+    void insertAll(vector<pair<string, int>> &ls, int n){
+        for (auto &[s, w] : ls){
+            insert(s, w);
+        }
+    }
+
+
+};
