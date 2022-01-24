@@ -19,3 +19,47 @@ Expressions:
 
         Time Complexity: O(n^2)
 
+
+OPTIMISATION:
+        We will change our dp as follows:
+        Instead of storing the LIS of each prefix or
+        suffix, we will set
+
+            dp[i] = smallest element which could be the last element
+                    for the LIS of length the i, in the prefix array a[...i]
+
+        Observation :
+            Let's say the a[i] = x.
+            Now there must some element >= x, which
+            is representing LIS of some length. We will find that
+            element and set dp[j] = x (this is the best we can do)
+            * j is the index of that element in the dp.
+
+            If the original dp was sorted then after doing this
+            operation it will remain sorted. Hence the dp is sorted.
+
+            Finding the jth index can be done in logN time using
+            lower_bound function.
+
+        CODE:
+            // the array is 1 based
+            int n; cin >> n;
+            for (int i = 1; i <= n; ++i) {
+                dp[i] = inf;
+            }
+
+            for (int i = 0; i < n; ++i) {
+                int x; cin >> x;
+                int j = lower_bound(dp + 1, dp + n + 1, x) - dp;
+                dp[j] = x;
+            }
+
+            int ans = 1;
+            for (int i = 1; i <= n; ++i) {
+                if (dp[i] != inf) ans = i;
+            }
+
+            cout << ans;
+
+
+
