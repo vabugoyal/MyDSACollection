@@ -1,0 +1,36 @@
+NOTE :  Try to divide the problem in best possible ways.
+        Such that calculation of given problem from sub-problems becomes easy.
+
+
+STRUCTURE:
+
+Sub-Problems:
+        Given a rectangle with dimensions i and j
+        Tell me the number of ways in which you can
+        fill squares in it
+Guesses:
+        We can try to split rectangle vertically in all possible ways.
+        We can try to split rectangle horizontally in all possible ways.
+Expressions:
+        for k = 1 to i - 1
+            dp[i][j] = min(dp[i][j], dp[k][j] + dp[i - k][j] + 1)
+        for k = 1 to j - 1
+            dp[i][j] = min(dp[i][j], dp[i][k] + dp[i][j - k] + 1)
+
+Answering the original problem:
+        return dp[a][b]
+
+CODE:
+    int a, b; cin >> a >> b;
+
+        for (int i = 1; i <= a; ++i) {
+            for (int j = 1; j <= b; ++j) {
+                if (i ^ j) dp[i][j] = inf;
+                for (int k = 1; k < i; ++k)
+                    dp[i][j] = min(dp[i][j], dp[k][j] + dp[i - k][j] + 1);
+                for (int k = 1; k < j; ++k)
+                    dp[i][j] = min(dp[i][j], dp[i][k] + dp[i][j - k] + 1);
+            }
+        }
+
+        cout << dp[a][b];

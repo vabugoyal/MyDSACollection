@@ -1,0 +1,93 @@
+Problem: https://cses.fi/problemset/task/2181/
+
+STRUCTURE:
+
+Sub-Problems:
+        given an index i, tell me the number of ways to
+        fill the rectangle with 1 X 2 and 2 X 1 dominoes
+        upto the (i - 1) th column and also given the extra filled columns
+        of the next column i.e ith column which will be
+        represented by a bitmask.
+Guesses:
+        I know the number of ways of partially filling the rectangle
+        upto column i and now will try to fill it completely, by trying
+        all possible filling states using backtracking.
+Expressions:
+
+        I know the ways to partially fill dp[i][mask]
+        I will count the ways in which partially filled
+        mask (nextMask) of next column can be generated
+        using generateNextMask function.
+        if (dp[i][mask] == 0) continue;
+        memo.clear();
+        generateNextMask(mask, 0);
+        for (auto [nextMask, ways] : memo){
+            dp[i + 1][nextMask] = (dp[i + 1][nextMask] + (ways * dp[i][mask])) % M;
+        }
+
+        Base Case:
+            For the first column the only way of partially
+            filling is through a state where none of the
+            blocks are empty, i.e dp[0][0] = 1
+
+Answering the original Problem:
+        return dp[m][0]
+
+
+CODE:
+
+    typedef long long ll;
+    int M = 1e9 + 7;
+    int const mxX = 2e5, inf = 1e9 + 1;
+    int n, m;
+    ll dp[1000 + 1][(1 << 10) + 1];
+
+    ll newMask = 0;
+    map<int, ll> memo;
+
+    void generateNextMask(int mask, int i) {
+        if (i == n){
+            // All the bits are covered
+            memo[newMask]++;
+            return;
+        }
+
+        if (mask & (1 << i)){
+            // ith bit in mask is on
+            generateNextMask(mask, i + 1);
+        } else if (!(mask & (1 << i))){
+            // ith bit in mask is off
+            newMask += (1 << i);
+            generateNextMask(mask, i + 1);
+            newMask -= (1 << i);
+        }
+        if (i + 1 < n && !(mask & (1 << i)) && !(mask & (1 << (i + 1)))){
+            // ith bit is off and i + 1 th bit is also off
+            generateNextMask(mask, i + 2);
+        }
+
+    }
+
+    int main()
+    {
+
+        cin >> n >> m;
+        // Base Case :
+        dp[0][0] = 1;
+        // moving thorough columns
+        for (int i = 0; i < m; ++i) {
+            // generating the masks of the next column using the current column
+            for (int mask = 0; mask < (1 << n); ++mask) {
+                if (dp[i][mask] == 0) continue;
+                memo.clear();
+                generateNextMask(mask, 0);
+                for (auto [nextMask, ways] : memo){
+                    dp[i + 1][nextMask] = (dp[i + 1][nextMask] + (ways * dp[i][mask])) % M;
+                }
+            }
+        }
+
+        cout << dp[m][0];
+
+        return 0;
+    }

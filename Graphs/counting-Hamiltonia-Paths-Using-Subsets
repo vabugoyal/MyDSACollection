@@ -35,13 +35,6 @@ struct Solution {
 
     int findHamiltonianCycles() {
 
-        // initialising the dp
-        for (int i = 0; i < (1 << n); ++i) {
-            for (int j = 0; j < n; ++j) {
-                dp[j][i] = 0;
-            }
-        }
-
         // Base Cases : Cycles starting only form node 1
         dp[0][1] = 1;
 
@@ -69,9 +62,5 @@ struct Solution {
 TIME COMPLEXITY: O(N ^ 2 * (2 ^ N))
 
 
-
-METHOD 3:
-
-OPTIMISATION:
 
 
