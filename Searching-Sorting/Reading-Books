@@ -1,0 +1,28 @@
+PROBLEM : https://cses.fi/problemset/task/1631
+
+Approach :
+        Observation :
+            The first person has to read all the books.
+            The second person has to read all the books.
+            So, the ans is at least sum of all times.
+            Lets say first person starts reading the books in sorted
+            order. Second, person reads in reverse order.
+            Now, the moment the first person reads the max time
+            book the shortest time book would have been freed up.
+            So, he will read the books in reverse sorted order.
+
+            But what if the max time book takes more time then
+            reading the first n - 1 books in the sorted order, then
+            first person has to wait till the first book is freed up.
+            Then, he will read that book. Ans in this case would be
+            2 * max time.
+
+            Final ans = max(all sum, 2 * max time)
+
+CODE :
+        int n; cin >> n;
+        vl ls(n); read(ls)
+        int ans = max(accumulate(all(ls), 0LL), 2 * *max_element(all(ls)));
+        pr(ans)
+
+

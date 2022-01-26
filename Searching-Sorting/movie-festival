@@ -1,0 +1,61 @@
+PROBLEM : https://cses.fi/problemset/task/1629/ (Activity Selection Problem)
+
+DP Solution:
+        Sort the activities by their starting time.
+        Now dp[i] will consider all the events starting
+        from the moment arr[i][0]. It will store the
+        maximum activities which I can do if the time
+        starts after this moment.
+
+        Guesses:
+                Either I will do the current activity or I will not
+                dp[i] = max(dp[i + 1], dp[j])
+                where j is the index which marks the start of the next disjoint activity.
+        Answering the original problem :
+            return dp[0]
+
+        CODE:
+            int n; cin >> n;
+            for (int i = 0; i < n; ++i) {
+                cin >> x[i][0] >> x[i][1];
+            }
+            sort(x, x + n);
+
+            for (int i = n - 1; i >= 0; --i) {
+                dp[i] = max(1, dp[i + 1]);
+                ar<int, 2> tr = {x[i][1], -inf};
+                int y = lower_bound(x, x + n, tr) - x;
+                if (y != n){
+                    dp[i] = max(dp[i], 1 + dp[y]);
+                }
+            }
+
+            cout << dp[0]
+
+
+Greedy Solution :
+        Lets sort the activities by their ending time.
+        Now, think about choosing the first activity.
+        It is better to choose the activity which ends first
+        then to choose the one which ends later, for the
+        first activity.
+        Ok, we have chosen the first activity as to be the one
+        which ends first. Now, we have the same problem again with
+        rest of the activities.
+
+        CODE:
+
+            int n; cin >> n;
+            for (int i = 0; i < n; ++i) {
+                cin >> x[i][1] >> x[i][0];
+            }
+            sort(x, x + n);
+            int last = 0, ans = 0;
+            for (int i = 0; i < n; ++i) {
+                if (last <= x[i][1]){
+                    last = x[i][0];
+                    ans++;
+                }
+            }
+
+            cout << ans;

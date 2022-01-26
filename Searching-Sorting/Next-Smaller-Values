@@ -1,0 +1,52 @@
+PROBLEM : https://cses.fi/problemset/task/1645
+
+Approach :
+        Let say that I am at certain index i.
+        I have processed the array a[...i-1].
+        I have some information about the data in that array in
+        my memo.
+        We define some optimal way of storing
+        that information and show that doing operation at
+        ith index will maintain the optimal structure of that
+        array.
+        There will some elements which we have encountered
+        earlier i.e form 0 to i - 1. Each element will correspond to
+        some index. Consider two elements in it 'a' and 'b'.
+        If a is greater than b then the index of b should be greater
+        than index of a, otherwise it is not optimal to keep b in the
+        memo as a can be used as the smaller element.
+
+        NOTE : From the above scenario it is clear that the memo is sorted.
+
+        How the memo changes when we do some operation?
+
+        Lets say the element at ith index is x. I want to
+        find an element just smaller than the current element.
+        I will find it. Now, all the elements which are greater
+        than x are useless as x as can be used as the smaller element
+        instead of those. So I will remove all those elements.
+
+        The above process is similar to LIS or towers of CSES.
+
+CODE :
+
+          int n; cin >> n;
+          vl ls(n); read(ls)
+          vector<ar2> memo; memo.push_back({inf, -1});
+          f(i, n){
+              ar2 tr = {ls[i], -1};
+              int j = std::lower_bound(memo.begin(), memo.end(), tr) - memo.begin();
+              if (j == 0){
+                  // no element is smaller than this
+                  prc(0);
+                  memo.clear();
+                  memo.push_back({ls[i], i + 1});
+              } else {
+                  prc(memo[j - 1][1])
+                  int waste = memo.size() - j;
+                  while(waste--) memo.pop_back();
+                  memo.push_back({ls[i], i + 1});
+              }
+          }
+
+

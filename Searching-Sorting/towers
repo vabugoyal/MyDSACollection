@@ -1,0 +1,33 @@
+PROBLEM : https://cses.fi/problemset/result/3439154/
+
+Approach :
+        Lets say I have some towers already built.
+        Now I want to put box of size ls[i] on them or create a new tower.
+        If I find a tower which has its top
+        box just bigger than the given box then I is
+        better to place the box on that tower compared to
+        all other towers.
+        Now, starting a new tower with this box will not be beneficial
+        because if I left that tower for some future box which was greater
+        than or equal to the current box then why not start the new tower with
+        that box. And smaller box is out ruled as it can
+        be placed on top of the current box.
+        Now, the only time we create a new tower is when there
+        does not exists a tower whose top box is greater than the current tower.
+
+
+CODE :
+
+        int n; cin >> n;
+        vl boxes(n); read(boxes)
+        vl towerTops; towerTops.push_back(inf);
+        for (int i = 0; i < n; ++i) {
+            auto j = std::upper_bound(towerTops.begin(), towerTops.end(), boxes[i]) - towerTops.begin();
+            if (j == towerTops.size()){
+                towerTops.push_back(boxes[i]);
+            } else {
+                towerTops[j] = boxes[i];
+            }
+        }
+
+        pr(towerTops.size())

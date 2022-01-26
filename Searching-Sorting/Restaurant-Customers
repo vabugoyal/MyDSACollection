@@ -1,0 +1,23 @@
+Problem : https://cses.fi/problemset/task/1619/
+
+Approach :
+        We can keep track of all the moments in a set.
+        At any time we can check how many people are still in the
+        Restaurant. When a person enters, that moment will be
+        marked by +1 and departure of a customer will be marked by -1.
+
+CODE :
+        int n; cin >> n;
+        set<ar<int, 2>> s;
+        for (int i = 0; i < n; ++i) {
+            int a, b; cin >> a >> b;
+            s.insert({a, 1});
+            s.insert({b + 1, -1});
+        }
+        int ans = 1, c = 0;
+        for(auto a : s) {
+            c += a[1];
+            ans = max(ans, c);
+        }
+
+        cout << ans;
