@@ -1,3 +1,42 @@
 PROBLEM : https://cses.fi/problemset/task/2183
 
 Approach :
+        Here, lets say I have a continuous sum
+        upto x - 1. So, now I need x. If curr
+        element is greater than x. Then there is no way
+        I can make the sum x.
+        As adding it to,
+            0 will give curr
+            1 will give curr + 1
+            2 will give curr + 2
+            ...
+
+
+            ...
+            x-1 will give curr + x
+        Hence, x will never be achievable
+        as curr > x.
+
+        So, to use curr element we should have
+        sum upto curr - 1 at least. Similarly, for
+        elements greater than curr the requirement will
+        be even more. Hence, we should first consider the
+        elements smaller than curr to move optimally.
+        It proves, the elements of the array should be considered
+        in the sorted order.
+
+CODE :
+        int n; cin >> n;
+        vl ls(n); read(ls)
+        sortv(ls)
+        int need = 1;
+        f(i, n){
+            if (ls[i] > need){
+                pr(need) return;
+            }
+            need += ls[i];
+        }
+        pr(need)
+
+
+

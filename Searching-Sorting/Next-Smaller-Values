@@ -50,3 +50,11 @@ CODE :
           }
 
 
+* Point to remember when thinking greedily.
+
+SIDE NOTE : You have to prove that current decision
+            which you are making is not making the
+            future solution worse. This way we can
+            say that past decisions which we have made
+            hasn't made the current part of the solution worse.
+
