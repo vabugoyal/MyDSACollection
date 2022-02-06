@@ -1,0 +1,89 @@
+PROBLEM : https://cses.fi/problemset/task/1076
+
+Approach :
+        Clearly, this is a sliding window problem.
+        We will implement this using two sets 'top'
+        and 'bot'. Top will store all the elements
+        greater than med and bot will store all the
+        elements lesser than median. There will be some
+        elements equal to median in the top set and some
+        in bot set.
+
+        We have implement two functions one will add an
+        element in the set and the other will remove an
+        element from the set.
+
+        Add :   if element is greater then med it will
+                go in the top set else in the bot set.
+        Rmv :   element will remove from the set in which
+                it is present.
+        Both of these functions will be followed by a fix
+        function to fix the size of the set and recalculate the
+        medians.
+
+        Fix :   It will make the sizes of the sets differ by at most 1.
+                Then median will be recalculated after fixing the sizes
+                to choose the middle element.
+
+
+CODE :
+        int n, k; cin >> n >> k;
+        vl ls(n); read(ls)
+
+        int med = -1;
+        multiset<int> top, bot;
+
+        auto fix = [&]() {
+            while(top.size() > bot.size() + 1){
+                bot.insert(*top.begin());
+                top.erase(top.begin());
+            }
+            while(top.size() < bot.size()){
+                top.insert(*--bot.end());
+                bot.erase(--bot.end());
+            }
+            if (top.size() == bot.size() + 1){
+                med = *top.begin();
+            } else {
+                med = *--bot.end();
+            }
+        };
+
+        auto add = [&](int x) {
+            if (med == -1){
+                med = x;
+                top.insert(x);
+            } else if (x < med) {
+                bot.insert(x);
+            } else {
+                top.insert(x);
+            }
+            fix();
+        };
+
+        auto rmv = [&](int x) {
+            if (top.find(x) != top.end()) {
+                top.erase(top.lower_bound(x));
+            } else if (bot.find(x) != bot.end()) {
+                bot.erase(bot.lower_bound(x));
+            }
+            fix();
+        };
+
+        // initialising the window of k elements
+        f(i, k) {
+            add(ls[i]);
+        }
+
+        rep(i,k, n){
+            prc(med)
+            add(ls[i]); rmv(ls[i - k]);
+        }
+        pr(med)
+
+
+
+
+
+
+

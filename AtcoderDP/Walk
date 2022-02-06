@@ -1,0 +1,84 @@
+STRUCTURE :
+
+a) Sub-Problems :
+        Number of ways to go from i to j
+        using exactly x edges.
+b) Expressions :
+        Lets Say we want to know number of ways
+        to go form i to j using exactly x + 1
+        edges, then we can try all edges.
+        for all k :
+            ways({i, j}, x + 1) = ways({i, k}, x) * ways({k, j}, 1)
+        This is like matrix multiplication for sub-problem
+        x and x + 1
+        Thus we can can speed up the calculation for higher
+        x values using matrix exponentiation.
+c) Answering the original problem :
+        ans = 0
+        for all i :
+            for all j :
+                ans += ways({i, j}, k)
+
+CODE :
+
+struct Matrix {
+
+    vvl M;
+    int n, m;
+
+    Matrix(int row, int col) {
+        M.resize(row, vl(col));
+        n = row, m = col;
+    }
+
+    Matrix operator *(Matrix  &b) const {
+        Matrix c(n, b.m);
+        for (int i = 0; i < n; ++i)
+            for (int j = 0; j < b.m; ++j)
+                for (int k = 0; k < m; ++k)
+                    addSelf(c.M[i][j], mul(M[i][k], b.M[k][j]));
+        return c;
+    }
+
+};
+
+
+struct Solution {
+
+    // variables
+
+    void solve() {
+
+        int n, k; cin >> n >> k;
+        vvl edge(n, vl(n));
+        f(i, n) {
+            f(j, n) {
+                cin >> edge[i][j];
+            }
+        }
+
+
+        Matrix init(n, n);
+        init.M = edge;
+        Matrix ans(n, n);
+        f(i, n) f(j, n) ans.M[i][j] = i == j;
+
+        while(k) {
+            if (k & 1){
+                ans = ans * init;
+            }
+            init = init * init;
+            k /= 2;
+        }
+
+
+        int answer = 0;
+        f(i, n) {
+            f(j, n) {
+                answer = add(answer, ans.M[i][j]);
+            }
+        }
+        pr(answer)
+
+    }
+};

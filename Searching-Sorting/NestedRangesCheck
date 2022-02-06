@@ -1,0 +1,68 @@
+PROBLEM : https://cses.fi/problemset/task/2168
+
+Approach :
+        In order to process the ranges in a organised
+        manner we will sort the range in order of their
+        starting time. Also, consider the following ranges
+        for the edge case
+        ----------
+        -----
+        Both of them has same staring point but second range
+        is contained in the first one. So, first range should
+        come first in the sorted order.
+
+        We will process the ranges from right to left.
+        Lets say, we are at range i. Now all the range[...i-1]
+        have their left border less than or equal to the left border
+        of the range[i]. At every we will have the max right
+        border of the range 0 to i - 1. If that right border is
+        grater than or equal to the right border of the current range
+        then the given range is contained in some range.
+
+        Similarly, we can check if the given range contains some range
+        by iterating the range in the reverse order and maintaining the
+        min right border we encountered at any point.
+
+
+CODE :
+        int n; cin >> n;
+        vector<ar3> ranges(n);
+
+        f(i, n){
+            int l, r; cin >> l >> r;
+            ranges[i] = {l, r, i};
+        }
+
+        std::sort(ranges.begin(), ranges.end(), [&](ar3 &a, ar3 &b) {
+           if (a[0] == b[0]) {
+               return a[1] > b[1];
+           } else {
+               return a[0] < b[0];
+           }
+        });
+
+        vl contains(n), isContained(n);
+
+        int maxR= -inf;
+        for (int i = 0; i < n; ++i) {
+            if (maxR >= ranges[i][1]){
+                isContained[ranges[i][2]] = 1;
+            }
+            maxR = max(maxR, ranges[i][1]);
+        }
+
+        int minR = inf;
+        for (int i = n - 1; i >= 0; --i) {
+            if (minR <= ranges[i][1]){
+                contains[ranges[i][2]] = 1;
+            }
+            minR = min(minR, ranges[i][1]);
+        }
+
+
+        show(contains)
+        show(isContained)
+
+
+
+

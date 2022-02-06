@@ -1,0 +1,92 @@
+PROBLEM : https://cses.fi/problemset/task/1632
+
+Approach :
+        Lets say I have built some schedule in
+        the best possible way. Now, I have to
+        prove that making a decision at the current
+        state will not make the remaining part of the
+        solution worse.
+
+        I will have at max k slots as I have k members.
+        Each one will have the time upto which they are
+        reserved.
+
+        I will say the movies are sorted by their ending
+        time to make my point.
+
+        I want to add a movie.
+        Starting Time = l and Ending Time = r
+
+        Question to be asked.
+
+        a)  Lets say I have a slot. Should I add this movie?
+
+            Instead of adding this movie, lets say I add a movie
+            y which comes later. y will have its ending time greater
+            than the current movie. So, max time of that slot will be
+            more than with y as compared to the current movie which is bad.
+
+            Hence, the current movie should be placed in some slot
+            if some slot is available.
+
+        b)  What is the best slot for the current movie ?
+
+            Let the ending times of occupied slots be represented by
+            the following :
+
+            Slot 1 : -----
+            Slot 2 : -------
+            Slot 3 : ---------
+            ...
+
+            ...
+            Slot m : ---------------------
+
+            Let the current movie be represented by the following.
+
+                            -------
+            I can put the movie in slot 1 and slot 2.
+            Better to put it in slot 2.
+            As there might come a movie later which can
+            be placed in the slot 1.
+
+        c)  What if slot is not available ?
+            Slots cannot be created if we already have k slots.
+            Else we will do the following.
+            Better to create a new slot with this movie than
+            with some movie which will come later.
+
+
+
+CODE :
+        int n, k; cin >> n >> k;
+        vector<ar2> ranges(n);
+        f(i, n){
+            cin >> ranges[i][1] >> ranges[i][0];
+        }
+        sortv(ranges)
+        multiset<int> s;
+        int ans = 0;
+        f(i, n){
+            int l = ranges[i][1], r = ranges[i][0];
+            auto it = s.lower_bound(l);
+            if (*it == l) {
+                // slot which I found has its reserved time equal to l
+                s.insert(r); ans++;
+                s.erase(it);
+                continue;
+            }
+            if (it == s.begin()) {
+                // creating a new slot
+                if (s.size() < k) {
+                    s.insert(r); ans++;
+                }
+            } else {
+                --it;
+                s.erase(it);
+                s.insert(r); ans++;
+            }
+        }
+        pr(ans)
+
+

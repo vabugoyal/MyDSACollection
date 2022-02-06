@@ -1,23 +1,20 @@
 // ---------------------------------Policy Based DataStructures----------------------
-#include <ext/pb_ds/assoc_container.hpp> // Common file
-//#include <ext/pb_ds/tree_policy.hpp>
-//using namespace __gnu_pbds;
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
 
-//Templates
-////defining template when all elements are distinct
-//template <class T> using oset = tree<T, null_type,
-//        less<T>, rb_tree_tag,tree_order_statistics_node_update>;
-////defining template when duplicate elements are also used
-//template <class T> using omulset = tree<T, null_type,
-//        less_equal<T>, rb_tree_tag,tree_order_statistics_node_update>;
+//defining template when all elements are distinct
+template <class T> using oset = tree<T, null_type,
+        less<T>, rb_tree_tag,tree_order_statistics_node_update>;
+//defining template when duplicate elements are also used
+template <class T> using omulset = tree<T, null_type,
+        less_equal<T>, rb_tree_tag,tree_order_statistics_node_update>;
 
-//  .find_by_order(x) : index of the x element in the set
-//  .order_of_key(x)  : number of elements smaller than x in the set
+//  .find_by_order(x) : index of the x element in the set starting from 0
+//  .order_of_key(x)  : number of elements strictly smaller than x in the set
 
 // ------------------------------------------------------------------------------------
-
-
--------------------------------------------CUSTOM HASH---------------------------------------------------------
+//-------------------------------------------CUSTOM HASH---------------------------------------------------------
 
 struct custom_hash {
     static uint64_t splitmix64(uint64_t x) {
@@ -34,7 +31,7 @@ struct custom_hash {
     }
 };
 
--------------------------------------------NCR COMPUTATIONS---------------------------------------------------------
+//-------------------------------------------NCR COMPUTATIONS---------------------------------------------------------
 
 vector<ll> fact(mxn,0), in (mxn, 0);
 
@@ -119,6 +116,78 @@ vector<int> factors(int x) {
     sort(all(ans));
     return ans;
 }
+
+map<int, int> decompose(int x) {
+    vl facs = factors(x);
+    map<int, int> mp;
+    for (auto k : facs) mp[k]++;
+    return mp;
+}
+
+
+
+// Better method to calculate factors (for n = 1e9)
+
+const int N = 50'000;
+
+bool isPrime[N];
+vector<int> primes;
+
+void precalc() {
+  fill(isPrime + 2, isPrime + N, true);
+  for (int i = 2; i * i < N; i++) {
+    for (int j = i * i; j < N; j += i) {
+      isPrime[j] = false;
+    }
+  }
+  for (int i = 2; i < N; i++) {
+    if (isPrime[i]) {
+      primes.push_back(i);
+    }
+  }
+}
+
+int calcPrime(int n) {
+  int res = 0;
+  for (int i : primes) {
+    if (i * i > n) {
+      break;
+    }
+    while (n % i == 0) {
+      n /= i;
+      res++;
+    }
+  }
+  if (n > 1) {
+    res++;
+  }
+  return res;
+}
+
+map<int, int> decompose(int n) {
+  map<int, int> a;
+  for (int i : primes) {
+    if (i * i > n) {
+      break;
+    }
+    int p = 0;
+    while (n % i == 0) {
+      n /= i;
+      p++;
+    }
+    if (p > 0) {
+      a[i] = p;
+    }
+  }
+  if (n > 1) {
+    a[n] = 1;
+  }
+  return a;
+}
+
+
+
+
 
 
 
