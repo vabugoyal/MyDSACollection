@@ -1,0 +1,62 @@
+STRUCTURE :
+
+1) Sub-Problems :
+        Given whether I am under tight bound or not
+        Also given the current index. Tell my the
+        number of ways in which I can construct the
+        rest part of the dp. Which the satisfies some
+        condition which in this case is getting some remainder.
+2) Guesses :
+        I will make certain guesses based on condition that I am
+        under certain bound or not.
+3) Expressions :
+        Varies based on the problem
+4) Answering the original problem :
+        .....
+
+CODE :
+
+int dp[10002][101][2];
+
+struct Solution {
+
+    // variables
+    string k; int D;
+
+    void solve() {
+
+        cin >> k;
+        cin >> D;
+        f(i, k.size()+1){
+            f(j, D+1){
+                dp[i][j][0] = -1;
+                dp[i][j][1] = -1;
+            }
+        }
+
+        int ans = func(0, 0, 1);
+        pr(sub(ans, 1))
+
+    }
+
+    int func(int i, int r, int tight) {
+
+        if (i == k.size()){
+            return r == 0;
+        }
+        if (dp[i][r][tight] != -1)
+            return dp[i][r][tight];
+        int ub = tight ? (k[i] - '0') : 9;
+        int ans = 0;
+        for (int j = 0; j <= ub; ++j) {
+            int new_r = j % D <= r ? r - j % D : D + r - j % D;
+            ans = add(ans, func(i + 1, new_r, (tight && (j == ub))));
+        }
+        return dp[i][r][tight] = ans % mod;
+
+    }
+};
+
+
+
+

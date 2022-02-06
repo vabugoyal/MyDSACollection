@@ -1,3 +1,22 @@
+// ---------------------------------Policy Based DataStructures----------------------
+#include <ext/pb_ds/assoc_container.hpp> // Common file
+//#include <ext/pb_ds/tree_policy.hpp>
+//using namespace __gnu_pbds;
+
+//Templates
+////defining template when all elements are distinct
+//template <class T> using oset = tree<T, null_type,
+//        less<T>, rb_tree_tag,tree_order_statistics_node_update>;
+////defining template when duplicate elements are also used
+//template <class T> using omulset = tree<T, null_type,
+//        less_equal<T>, rb_tree_tag,tree_order_statistics_node_update>;
+
+//  .find_by_order(x) : index of the x element in the set
+//  .order_of_key(x)  : number of elements smaller than x in the set
+
+// ------------------------------------------------------------------------------------
+
+
 -------------------------------------------CUSTOM HASH---------------------------------------------------------
 
 struct custom_hash {
