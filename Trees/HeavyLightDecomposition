@@ -1,0 +1,171 @@
+
+// Segtree used for calculating the property
+struct SegTree
+{
+    int size;
+    vector<ll> values;
+
+    void init(int n){
+        size = 1;
+        while (size < n) size *= 2;
+        values.assign(2*size, LLONG_MIN);
+    }
+
+    void set(int i, int v, int x, int lx, int rx){
+        if (rx - lx == 1) {
+            values[x] = v;
+            return;
+        }
+        int m = (lx + rx) / 2;
+        if (i < m){
+            set(i, v, 2*x+1, lx, m);
+        }
+        else{
+            set(i, v, 2*x + 2, m, rx);
+        }
+        values[x] = max(values[2*x + 1] , values[2*x + 2]);
+    }
+
+    void set(int i, ll v){
+        set(i, v, 0, 0, size);
+    }
+
+    ll calc(int l, int r, int x, int lx, int rx){
+        if (l >= rx || r <= lx){
+            return LLONG_MIN;
+        }
+        if (l <= lx and rx <= r) return values[x];
+        int m = (lx + rx) / 2;
+        ll s1 = calc(l, r, 2*x + 1, lx, m);
+        ll s2 = calc(l, r, 2*x + 2, m, rx);
+        return max(s1 , s2);
+    }
+
+    ll calc(int l, int r){
+        return calc(l, r, 0, 0, size);
+    }
+};
+
+struct HeavyLightDecomposition {
+    vvl t;
+    int n, root;
+    vl
+    subtreeSize,
+    depth,
+    heavy,
+    par,
+    top,
+    pre,
+    vals,
+    point;
+
+    SegTree sTRee;
+
+    void init(vvl &T, int &N, vl &V) {
+        t = T;
+        n = N;
+        root = 1;
+        vals = V;
+        subtreeSize.resize(n + 1);
+        heavy.resize(n + 1);
+        par.resize(n + 1);
+        top.resize(n + 1);
+        point.resize(n + 1);
+        depth.resize(n + 1);
+
+        dfs1(root, -1, 0);
+        dfs2(root, -1, root);
+        dfs3(1, -1);
+
+        sTRee.init(n);
+
+        f(i, n) {
+            sTRee.set(i, vals[pre[i]]);
+        }
+
+    }
+
+    void update(int s, int x) {
+        // change the values of node s to x
+        s = point[s];
+        sTRee.set(s, x);
+        return;
+    }
+
+    int calc(int a, int b) {
+        // find the value of the function between a and b
+        int res = 0;
+        int u = a, v = b;
+        while(1)  {
+            int x = top[u], y = top[v];
+            if (x == y) {
+                int l = point[u], r = point[v];
+                if (l > r) swap(l, r);
+                res = max(res, sTRee.calc(l, r + 1));
+                goto outer;
+            }
+            if (depth[x] < depth[y]) {
+                int l = point[v], r = point[y];
+                if (l > r) swap(l, r);
+                res = max(res, sTRee.calc(l, r + 1));
+                v = par[y];
+            } else {
+                int l = point[u], r = point[x];
+                if (l > r) swap(l, r);
+                res = max(res, sTRee.calc(l, r + 1));
+                u = par[x];
+            }
+        }
+
+        outer:;
+        return res;
+
+    }
+
+    void dfs1(int s, int p, int lvl) {
+        par[s] = p;
+        depth[s] = lvl;
+        subtreeSize[s] = 1;
+        int HS = 0;
+        int HC = 0;
+        for (auto c : t[s]) {
+            if (c == p) continue;
+            dfs1(c, s, lvl + 1);
+            subtreeSize[s] += subtreeSize[c];
+            if (subtreeSize[c] > HS) {
+                HS = subtreeSize[c];
+                HC = c;
+            }
+        }
+        heavy[s] = HC;
+    }
+
+    void dfs2(int s, int p, int u) {
+        top[s] = u;
+        for (auto c : t[s]) {
+            if (c == p) continue;
+            if (c == heavy[s]) {
+                dfs2(c, s, u);
+            } else {
+                dfs2(c, s, c);
+            }
+        }
+    }
+
+    void dfs3(int s, int p) {
+        // first I have to visit the heavy subtree first
+        // bcs that will put the nodes of each component in
+        // a continuous manner
+        point[s] = pre.size();
+        pre.push_back(s);
+        if (heavy[s]) {
+            dfs3(heavy[s], s);
+        }
+        for (auto c : t[s]) {
+            if (c == p || c == heavy[s]) continue;
+            dfs3(c, s);
+        }
+    }
+
+};
+
