@@ -1,0 +1,56 @@
+We will given a string and a pattern.
+We have to tell whether that pattern is contained
+in that string in linear time.
+
+The unneeded stuff which we are doing in the
+naive way is the following:
+is we have a mismatch at some point then
+we are the checking the string from the
+start again rather at any point
+we can already store what length of the
+prefix of already matched at point before
+the current point and start from the corresponding
+next point.
+
+CODE:
+    vector<int> prefix_function(string s) {
+        int n = (int)s.length();
+        vector<int> pi(n);
+        for (int i = 1; i < n; i++) {
+            int j = pi[i-1];
+            while (j > 0 && s[i] != s[j])
+                j = pi[j-1];
+            if (s[i] == s[j])
+                j++;
+            pi[i] = j;
+        }
+        return pi;
+    }
+
+
+    string s, p;
+    cin >> s >> p;
+    int n1 = s.size(), n2 = p.size(), ans = 0;
+    vl pi(n1);
+    // performing KMP on the pattern
+    vl kmp = prefix_function(p);
+
+    // pi[i] =  longest prefix of pattern which is contained in the
+    //          suffix[i] of the string s
+
+    for (int i = 1; i < n1; ++i) {
+        int j = pi[i - 1];
+        while(j > 0 && s[i] != p[j]) {
+            j = kmp[j - 1];
+        }
+        if (s[i] == p[j]) j++;
+        pi[i] = j;
+        ans += pi[i] == n2;
+    }
+    // since we are considering the string form 1 index
+    // so explicitly checking for index 0
+    ans += s.substr(0, n2) == p;
+
+    // Ans = no of times the pattern occurs in the string
+    pr(ans)
+

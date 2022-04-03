@@ -1,0 +1,31 @@
+This is problem is approached using KMP algorithm.
+
+KMP algorithm does some preprocessing on the pattern.
+It make an array which stores the max length which
+prefix of pattern[...i] which is also a suffix.
+According to it we store that what part of
+the pattern is already matched and we do not need
+to check that part again.
+
+
+CODE:
+    vector<int> prefix_function(string s) {
+        int n = (int)s.length();
+        vector<int> pi(n);
+        for (int i = 1; i < n; i++) {
+            int j = pi[i-1];
+            while (j > 0 && s[i] != s[j])
+                j = pi[j-1];
+            if (s[i] == s[j])
+                j++;
+            pi[i] = j;
+        }
+        return pi;
+    }
+
+pi will store the max prefix which is also a suffix.
+
+To find the longest prefix palindrome we can make a new
+string new_s = s + # + rev(s)
+where s is the original string and find the value
+pi.back()
