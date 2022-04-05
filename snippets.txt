@@ -85,8 +85,8 @@ int gcd(int a, int b) {
     return a << shift;
 }
 
-w
 
+c
 
 // prime factorization (for n = 1e9)
 
