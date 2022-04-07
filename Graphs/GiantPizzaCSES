@@ -1,0 +1,57 @@
+Problem : https://cses.fi/problemset/task/1684
+
+This will solved with the help of 2-SAT problem.
+Find the values for all the variables such that the given expression is true.
+(x or y) and (!y or z) and (!z or !x)
+
+Observations :
+if x == 0, then y must be 1
+if y == 0, then x must be 1
+...
+
+...
+
+Thus, for every condition I will have two edges.
+Also if there is the edge u -> v then there
+is also an edge from !v -> !u. Hence, for every
+strongly connected component there is similar
+connected component which is consisting of !nodes.
+Hence, if there is an implication from one of
+them to another then I should take the one
+which come later in the topological order.
+
+
+
+
+
+CODE :
+
+        int n, m; cin >> n >> m;
+        int totNodes = 2 * m + 1;
+        vvl g(totNodes + 1), rg(totNodes + 1);
+        for (int i = 0; i < n; ++i) {
+            int a, b; char c1, c2;
+            cin >> c1 >> a >> c2 >> b;
+            a <<= 1; b <<= 1;
+            if (c1 == '-') a++;
+            if (c2 == '-') b++;
+            g[a^1].push_back(b);
+            g[b^1].push_back(a);
+        }
+        for (int i = 1; i <= totNodes; ++i) {
+            for (auto C : g[i]) rg[C].push_back(i);
+        }
+        auto [componenets, SCCS] = kosaRajuSCCs(g, rg, totNodes);
+        for (int i = 1; i <= m; ++i) {
+            if (SCCS[2 * i] == SCCS[2 * i + 1]) {
+                pr("IMPOSSIBLE") return;
+            }
+        }
+        vector<char> ans(m + 1);
+        for (int i = 1; i <= m; ++i) {
+            ans[i] = SCCS[2 * i + 1] > SCCS[2 * i] ? '-' : '+';
+        }
+        for (int i = 1; i <= m; ++i) {
+            cout << ans[i];
+        }
+

@@ -1,4 +1,32 @@
-STRUCTURE :
+Problem : https://atcoder.jp/contests/dp/tasks/dp_q
+At any state I will have the max beauty which I
+can capture from arr[..i] given the last element of
+the sequence. It should be noticed that if last elemtent
+has greater height then it should have more beauty
+otherwise it is useless as I can use a smaller height
+bar in place of that.
 
-Sub-Problems :
+CODE:
 
+    int n; cin >> n;
+    vl h(n), b(n);
+    read(h) read(b)
+    set<pl> s;
+
+    for (int i = 0; i < n; ++i) {
+        auto it = s.upper_bound(make_pair(h[i], inf));
+        int new_beauty = it == s.begin() ? b[i] : (*--it).second + b[i];
+        s.insert({h[i], new_beauty});
+        auto it2 = s.find({h[i], new_beauty});
+        if (it2 != s.begin()) {
+            auto it3 = it2; --it3;
+            if (new_beauty <= (*it3).second) {
+                s.erase(it2);
+            }
+        }
+        it2++;
+        while(it2!=s.end() && (*it2).second <= new_beauty) s.erase(it2++);
+
+    }
+
+    pr(s.rbegin()->second)
