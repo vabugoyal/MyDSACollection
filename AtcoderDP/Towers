@@ -1,0 +1,40 @@
+Approach :
+    Since, each block can be processed only once
+    implies that the blocks which is iterating over
+    blocks should on the outside. Now, we the question
+    is about the order in which we should process the
+    blocks. It can be shown by exchange argument that
+    blocks should be sorted by their w + s.
+    Now, this problem turns into a standard knapsack
+    problem.
+
+CODE :
+    const int mxW = 5e4;
+    int dp[mxW + 1];
+
+    struct Solution {
+        void solve() {
+            int n; cin >> n;
+            vector<array<int, 3>> blocks(n);
+            for (int i = 0; i < n; ++i) {
+                cin >> blocks[i][0] >> blocks[i][1] >> blocks[i][2];
+            }
+            std::sort(blocks.begin(), blocks.end(), [&](array<int, 3> &B1, array<int, 3> &B2) {
+               return B1[1] + B1[0] < B2[1] + B2[0];
+            });
+
+            for (int i = 0; i < n; ++i) {
+                int S = blocks[i][1], V = blocks[i][2], W = blocks[i][0];
+                for (int w = min(mxW, S + W); w >= W; --w) {
+                    dp[w] = max(dp[w], V + dp[w - W]);
+                }
+            }
+
+            int ans = 0;
+            for (int i = 0; i < mxW + 1; ++i) {
+                maxSelf(ans, dp[i]);
+            }
+            pr(ans)
+        }
+    };
+
