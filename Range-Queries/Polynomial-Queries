@@ -1,0 +1,84 @@
+PROBLEM : https://cses.fi/problemset/task/1736
+
+Approach:
+    We will store the start of the range which
+    is passing through the given segment.
+    This will help us calculate what part of
+    the ans does that range contribute.
+    Also the number of ranges passing through that
+    segment will be stored.
+    Finally the contribution through that range will
+    be calculated using the calcVal function.
+
+struct Node {
+    int start, cnt, val;
+};
+
+
+struct PolynomialQueries {
+    int size;
+    vector<Node> nodes;
+    void init(int n) {
+        size = 1;
+        while(n > size) size <<= 1;
+        nodes.resize(size * 2, {0, 0, 0});
+    }
+
+    int calcVal(int S, int C, int lx, int rx) {
+        int n = rx - lx;
+        int ans = n * (C * lx - S) + C * n * (n + 1) / 2;
+        return ans;
+    }
+
+    void propogate(int x, int lx, int rx) {
+        if (rx - lx == 1) return;
+        int L = 2 * x + 1, R = 2 * x + 2;
+        int mid = (lx + rx) / 2;
+        nodes[L].start += nodes[x].start;
+        nodes[L].cnt += nodes[x].cnt;
+        nodes[L].val += calcVal(nodes[x].start, nodes[x].cnt, lx, mid);
+
+        nodes[R].start += nodes[x].start;
+        nodes[R].cnt += nodes[x].cnt;
+        nodes[R].val += calcVal(nodes[x].start, nodes[x].cnt, mid, rx);
+
+        nodes[x].start = 0;
+        nodes[x].cnt = 0;
+    }
+
+    void modify(int l ,int r) {
+        // l and r are inclusive
+        modify(l, r, 0, 0, size);
+    }
+
+    void modify(int l, int r, int x, int lx, int rx) {
+        propogate(x, lx, rx);
+        if (r < lx || rx <= l) return;
+        if (l <= lx && rx <= r + 1) {
+            nodes[x].start += l;
+            nodes[x].cnt++;
+            nodes[x].val += calcVal(l, 1, lx, rx);
+            return;
+        }
+        int mid = (lx + rx) / 2;
+        modify(l, r, 2 * x + 1, lx, mid);
+        modify(l, r, 2 * x + 2, mid, rx);
+        nodes[x].val = nodes[2 * x + 1].val + nodes[2 * x + 2].val;
+    }
+
+    int calc(int l, int r) {
+        return calc(l, r, 0, 0, size);
+    }
+
+    int calc(int l, int r, int x, int lx, int rx) {
+        propogate(x, lx, rx);
+        if (r < lx || rx <= l) return 0;
+        if (l <= lx && rx <= r + 1) {
+            return nodes[x].val;
+        }
+        int mid = (lx + rx) / 2;
+        int L = calc(l, r, 2 * x + 1, lx, mid);
+        int R = calc(l, r, 2 * x + 2, mid, rx);
+        return L + R;
+    }
+};

@@ -1,0 +1,54 @@
+PROBLEM: https://cses.fi/problemset/task/2416
+
+Approach:
+Since, there are no updates in between we will
+sort the queries by their left border and process
+them in that order.
+Initially the segtree will contain all zeroes
+then for all integer a[i] in the given array we
+will mark their first occurrence as 1 in the segtree.
+Then will start processing the queries.
+If the last left border was l1 and new is l2
+then we will mark all the next occurrences of numbers
+in the range l1 ... l2 - 1 as 1.
+
+CODE :
+
+        int n, q; cin >> n >> q;
+        vl a(n); read(a)
+        map<int, int> NEXT, TEMP;
+        for (int i = n - 1; i >= 0; --i) {
+            if (!TEMP.count(a[i])) NEXT[i] = -1;
+            else NEXT[i] = TEMP[a[i]];
+            TEMP[a[i]] = i;
+        }
+        vector<array<int, 3>> quereies(q);
+        for (int i = 0; i < q; ++i) {
+            int l, r; cin >> l >> r;
+            quereies[i] = {l, r, i};
+        }
+        sortv(quereies)
+        segtree sTree; sTree.init(n);
+        set<int> S;
+        for (int i = 0; i < n; ++i) {
+            if (S.count(a[i])) continue;
+            sTree.set(i, 1);
+            S.insert(a[i]);
+        }
+        int last = -1;
+        vl ans(q);
+
+        for (auto [l, r, i] : quereies) {
+            l--, r--;
+            if (l > last) {
+                for (int j = max(0LL, last); j <= l - 1; ++j) {
+                    if (NEXT[j] != -1) sTree.set(NEXT[j], 1);
+                }
+            }
+            ans[i] = sTree.sum(l, r + 1);
+            last = l;
+        }
+
+        for (auto x : ans) pr(x)
+
+

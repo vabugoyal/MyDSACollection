@@ -1,0 +1,34 @@
+struct BinaryLift {
+    vvl val;
+    vl A;
+    int N;
+    const int LOG = 30;
+    const int NEUTRAL_ELEMENT = LLONG_MAX;
+    void init(vl &a, int n) {
+        N = n; A = a;
+        val.assign(n, vl(LOG + 1, NEUTRAL_ELEMENT));
+        binaryLifting();
+    }
+    void binaryLifting() {
+        for (int i = 0; i < N; ++i) {
+            val[i][0] = A[i];
+        }
+        for (int bit = 1; bit < LOG + 1; ++bit) {
+            for (int i = 0; i < N; ++i) {
+                int x1 = i, x2 = i + (1 << (bit - 1));
+                val[i][bit] = min(val[x1][bit - 1], x2 >= N ? NEUTRAL_ELEMENT : val[x2][bit - 1]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        int ans = A[l];
+        int curr = l;
+        for (int i = LOG; i >= 0; --i) {
+            if (curr + (1 << i) - 1 <= r) {
+                ans = min(ans, val[curr][i]);
+                curr += (1 << i);
+            }
+        }
+        return ans;
+    }
+};
