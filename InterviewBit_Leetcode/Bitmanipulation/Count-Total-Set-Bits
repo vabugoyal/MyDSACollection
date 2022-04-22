@@ -1,0 +1,40 @@
+Given an integer A, I have to tell the total
+number of set bits in the numbers from 0 to A.
+
+Approach:
+    I will iterate over the bits from most
+    significant bit to lsb. If the current
+    bit is one then. I will imagining a situation
+    where the current bit is zero and I can count
+    the number of set bits formed using the
+    remaining bits.
+           |
+    100000010101
+    Lets us say I am at | then I have 4 bits to work
+    on given that I have take the bit at | as 0.
+    One at position 0 can will come 8 times.
+    One at position 1 can will come 8 times.
+    One at position 2 can will come 8 times.
+    Total ones from right side are 24.
+    Now corresponding to those ones from right
+    side will come 1 * (2 ** 4 - 1) given that
+    I have taken the current bit as 0.
+
+CODE :
+    int Solution::solve(int A) {
+        const int bits = 30;
+        const int M = 1e9 + 7;
+        long long ans = 0, prev= 0;
+        for (int bit = bits; bit >= 0; --bit) {
+            if (A >> bit & 1) {
+                ans += (1LL) * (bit) * (1 << max(0, (bit - 1)));
+                ans += prev * ((1 << bit) - 1);
+                prev++;
+                ans += prev;
+                ans %= M;
+            }
+        }
+
+        ans %= M;
+        return ans;
+    }

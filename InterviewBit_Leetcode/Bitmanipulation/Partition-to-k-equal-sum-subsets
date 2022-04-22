@@ -1,0 +1,44 @@
+Approach:
+    Initially I can figure out what is the desired
+    sum for each subset.
+    dp[mask] = 1 if I can divide those elements
+    into subsets with equal sum.
+    Masks whose sum of elements is not a
+    multiple of k are useless.
+
+    bool canPartitionKSubsets(vector<int>& nums, int k) {
+        // dp[i][mask] = use the elements in the mask and
+        // divide them into i subsets
+        int bits = nums.size();
+        vector<int> dp(1 << bits, 0);
+        vector<int> sums(1<<bits, 0);
+
+        for (int mask=1;mask<1<<bits;mask++) {
+            int sum = 0;
+            for (int bit=0;bit<bits;bit++) {
+                if (mask >> bit & 1) sum += nums[bit];
+            }
+            sums[mask] = sum;
+        }
+        int S = sums[(1 << bits) - 1];
+        if (S % k) return false;
+        S = S / k;
+        dp[0] = 1;
+        for (int mask=1;mask<(1<<bits);mask++){
+            if (sums[mask] % S) continue;
+            for (int s=mask;;s=(s - 1)&mask) {
+                if (sums[s] == S) {
+                    int new_mask = mask ^ s;
+                    dp[mask] |= dp[new_mask];
+                }
+                if (s == 0) break;
+            }
+        }
+
+        return dp[(1 << bits) - 1];
+    }
+
+
+
+
+

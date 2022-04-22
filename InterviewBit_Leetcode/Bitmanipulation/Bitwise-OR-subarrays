@@ -1,0 +1,38 @@
+Approach:
+	Lets say I am at index i,
+	I have all possible OR values
+	a[0 ... I - 1]
+	a[1 ... I - 1]
+	....
+
+
+	....
+	a[I - 1 ... I - 1]
+	It should be noticed that these 
+	values will be at max 30 as I am moving
+	form index I - 1 to 0 a 0 bit will become 
+	1 this can happen a max of 30 times.
+	
+	So time, complexity will be O(n * 30)
+
+int subarrayBitwiseORs(vector<int>& arr) {
+    // possible bitwise ORs
+    // what is the max ans ?
+    int n = arr.size();
+    set<int> ans;
+    set<int> S;
+    for (int i=0; i<n; i++) {
+        set<int> new_S;
+        S.insert(0);
+        for (auto x : S){
+            int y = x | arr[i];
+            ans.insert(y);
+            new_S.insert(y);
+        }
+        S = new_S;
+    }
+    
+    
+    return ans.size();
+
+}

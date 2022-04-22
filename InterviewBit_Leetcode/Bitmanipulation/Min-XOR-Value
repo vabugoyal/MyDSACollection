@@ -1,0 +1,24 @@
+This can be implemented using a TRIE.
+But the following approach does not use TRIE.
+
+My Claim: We will get the min values only when we
+XOR the contiguous elements.
+
+Reason: Consider the bit form least significant side
+which differs in both the numbers where the current
+number is x. Now, if I move further ahead form x
+in the backward direction then the significance
+of this bit will increase and our ans will be more.
+
+CODE:
+    int Solution::findMinXor(vector<int> &A) {
+        const int bits = 30;
+        int n = A.size();
+        sort(A.begin(), A.end());
+        int ans = INT_MAX;
+        for(int i=1;i<n;i++) {
+            ans = min(ans, A[i] ^ A[i - 1]);
+        }
+
+        return ans;
+    }

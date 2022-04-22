@@ -1,0 +1,37 @@
+class Solution {
+public:
+    bool canIWin(int maxChoosableInteger, int desiredTotal) {
+        // dp[mask] = is it possibile to win from this situ
+        if (desiredTotal == 0) return true;
+        int maxSum = maxChoosableInteger * (maxChoosableInteger + 1) / 2;
+        if (desiredTotal > maxSum) return false;
+        const int bits = maxChoosableInteger;
+        vector<bool> dp(1 << bits, false);
+        for (int mask = (1 << bits) - 1;mask>=0;mask--) {
+
+            int sum = 0;
+            for (int bit = 0; bit < bits; bit++) {
+                if (mask >> bit & 1) sum += bit + 1;
+            }
+            if (sum >= desiredTotal) {
+                continue;
+            }
+            for (int bit = 0; bit < bits; bit++) {
+                if (mask >> bit & 1) continue;
+                int new_mask = mask | (1 << bit);
+                dp[mask] = dp[mask] | !dp[new_mask];
+                if (sum + (bit + 1) >= desiredTotal) dp[mask] = 1;
+            }
+        }
+
+
+        return dp[0];
+
+
+
+
+
+
+
+    }
+};

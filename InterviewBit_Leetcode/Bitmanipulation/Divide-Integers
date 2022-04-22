@@ -1,0 +1,57 @@
+class Solution {
+public:
+    int divide(int A, int B) {
+    // ans = A / B
+    // max ans = INT_MIN / -1 = INT_MAX + 1
+    // 2 ** 31 - 1
+    // take care of INT_MIN
+
+    // edge cases
+    const int bits = 30;
+    int sign = A < 0 ^ B < 0;
+    if (A == INT_MIN) {
+        if (B == INT_MIN) return 1;
+        if (B == 1) return INT_MIN;
+        if (B == -1) return INT_MAX;
+        int sign = B < 0 ^ A < 0;
+        B = abs(B);
+        if ((B & (B - 1)) == 0) {
+            for (int x = 0; x< bits + 1;x++) {
+                if (B >> x & 1) {
+                    return (1 << (31 - x)) * (sign ? -1 : 1);
+                }
+            }
+        }
+    }
+
+    if (B == INT_MIN) return 0;
+    if (A == INT_MIN) A++;
+
+    // B is not INT_MIN anymore
+    // A is not INT_MIN anymore
+
+    A = abs(A), B = abs(B);
+    
+    const int BIG_INT = -213;
+    vector<int> bins(bits + 1);
+    bins[0] = B;
+
+    for (int i = 1; i <= bits; ++i) {
+        if (bins[i - 1] >= -((-INT_MAX - 1) / 2) || bins[i - 1] == BIG_INT) {
+            bins[i] = BIG_INT;
+        } else {
+            bins[i] = bins[i - 1] + bins[i - 1];
+        }
+    }
+    int ans = 0;
+    for (int i = bits; i >= 0; --i) {
+        if (bins[i] != BIG_INT && A - bins[i] >= 0) {
+            ans += 1 << i;
+            A -= bins[i];
+        }
+    }
+    if (sign) ans = -ans;
+    return ans;
+        
+    }
+};
