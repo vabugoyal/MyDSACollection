@@ -1,4 +1,32 @@
 PROBLEM : https://cses.fi/problemset/task/2162
 
 Approach :
+    We will have a next array where will store
+    the next of each number. Now we have to take every second number.
+    We will have a curr pointer initially pointed to
+    1 then
+    - change the next of 1 to next[2]
+    - add next of 2 to the ans
+    - go to next[next[2]]
+    this will be done n times.
+
+CODE:
+        int n, k; cin >> n >> k;
+        // store the next and store the kth
+        vl next(n + 1);
+        for (int i = 1; i <= n; ++i) {
+            next[i] = i + 1 > n ? i + 1 - n : i + 1;
+        }
+        int curr = 1;
+        vl ans;
+        for (int i = 0; i < n; ++i) {
+            ans.push_back(next[curr]);
+            next[curr] = next[next[curr]];
+            curr = next[curr];
+        }
+
+        show(ans)
+
+
+
 

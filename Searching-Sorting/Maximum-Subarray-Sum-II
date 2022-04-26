@@ -1,0 +1,70 @@
+First we will see one more way to find max sum subarray.
+We will have a prefix array. We will be having a multiset
+We will be iterating over the left border of the
+maximum sum subarray. At each index i we will see
+pref[r] - pref[l - 1]. since r is constant we just
+need min value for pref[l - 1]. This can be achieved by
+storing these values in a multiset.
+
+CODE :
+        int n; cin >> n;
+        vl A(n); read(A)
+        vl pref = A;
+        for (int i = 1; i < n; ++i) {
+            pref[i] += pref[i - 1];
+        }
+        multiset<int> ms;
+        ms.insert(0);
+        int ans = -inf;
+        for (int i = 0; i < n; ++i) {
+            maxSelf(ans, pref[i] - *ms.begin());
+            ms.insert(pref[i]);
+        }
+        pr(ans)
+
+
+
+Updating the above approach to find the
+and for a subarray with length between a given
+range.
+
+Lets say the range is [a, b]
+
+Initially we will be starting r from (a - 1) this will
+have a length of a and multiset will be containing 0.
+We will move r until b - 1 and will be adding pref[x]
+in our ans where x = 0 initially and will be incrementing
+as r increases.
+
+Now, let there be two pointers to keep track of the subarray
+length L and R.
+Initially L = 0, R = b - a.
+we will be adding pref[R++] in the multiset
+and removing pref[L - 1] from multiset.
+
+CODE :
+        int n, a, b; cin >> n >> a >> b;
+        vl A(n); read(A)
+        vl pref = A;
+        for (int i = 1; i < n; ++i) {
+            pref[i] += pref[i - 1];
+        }
+        int R = b - a, L = 0;
+        int ans = -inf;
+        multiset<int> ms;
+        ms.insert(0);
+        int x = 0;
+        for (int i = a - 1; i < b; ++i) {
+            maxSelf(ans, pref[i] - *ms.begin());
+            if (i != b - 1)ms.insert(pref[x++]);
+        }
+        ms.erase(ms.find(0));
+        for (int i = b; i < n; ++i) {
+            ms.insert(pref[R++]);
+            if (L > 0) ms.erase(ms.find(pref[L - 1])); l++;
+            maxSelf(ans, pref[i] - *ms.begin());
+        }
+
+        pr(ans)
+
+

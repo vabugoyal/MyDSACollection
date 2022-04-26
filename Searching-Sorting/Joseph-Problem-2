@@ -1,0 +1,66 @@
+Approach1:
+    We will use a segtree which will
+    tell me the element at a particular position
+    then remove it from the array.
+    So our array length will decrease
+    if now I am at x then next element I will
+    find at (x + k) with respect the next length which
+    is this length - 1.
+
+CODE :
+
+    struct Segtree {
+        vl vals;
+        int size = 1;
+        const int NEUTRAL_ELEMENT = 0;
+
+        void init(int n) {
+            while(size <= n) size <<= 1;
+            vals.assign(size * 2, NEUTRAL_ELEMENT);
+        }
+
+        int find(int i)
+        {
+            return find(i, 0, 0, size);
+        }
+
+        int find(int i, int x, int lx, int rx) {
+            // vals[i] = number of deleted elements in that node
+            if (rx - lx == 1) {
+                vals[x] = 1;
+                return lx;
+            }
+            int mid = (lx + rx) / 2;
+            // find the elements in the left node
+            int L = mid - lx - vals[2 * x + 1];
+            int ans;
+            if (i + 1 <= L) {
+                // element is present in the left node
+                ans = find(i, 2 * x + 1, lx, mid);
+            } else {
+                // element is present in the right node
+                ans = find(i - L, 2 * x + 2, mid, rx);
+            }
+            // update vals
+            vals[x] = vals[2 * x + 1] + vals[2 * x + 2];
+            return ans;
+        }
+    };
+
+
+    int n, k; cin >> n >> k;
+    Segtree sTree; sTree.init(n);
+    vl ans;
+    int N = n;
+    int x = 0;
+    f(i, n) {
+        int j = (x + k) % N;
+        int z = sTree.find(j);
+        ans.push_back(z + 1);
+        x = j; N--;
+    }
+    show(ans)
+
+
+
+
