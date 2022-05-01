@@ -1,0 +1,49 @@
+Approach:
+    Lets say we have some and also consider it
+    to be as the best. Consider the following array :
+    ...........................
+    111111011010101010101000111
+     -----          -----
+       -----    -----
+          -----  ----- -----
+     -----
+       -----
+     Lets say the above set of operations gives the
+     best answer. Now, lets try to make it better.
+     Since, first operation in first row and second row
+     are repeated twice (they should be because they are
+     capturing a 1 in the initial array and number of
+     operations applied on that 1 should be even to keep
+     its parity same. Hence, we can remove those.
+     Thus, operations applied on all the 1s before the
+     first 0 can be cancelled.
+     Now, our first operation will from the index of the
+     first 0 (say i)
+     op on A[i ... (i + k - 1)]
+     Now, this turn into a new problem which will be solved in
+     the similar fashion.
+
+CODE :
+    class Solution {
+    public:
+        int minKBitFlips(vector<int>& nums, int k) {
+            reverse(nums.begin(), nums.end());
+            int n = nums.size();
+            vector<int> pref(n + 1);
+            int x = 0, ans = 0;
+            for (int i=0;i<n;i++) {
+                x += pref[i];
+                int parity = x & 1;
+                if ((nums[i] + parity) % 2 == 0) {
+                    x++; ans++;
+                    if (i + k > n) return -1;
+                    pref[i + k] -= 1;
+                }
+            }
+
+            return ans;
+
+
+
+        }
+    };

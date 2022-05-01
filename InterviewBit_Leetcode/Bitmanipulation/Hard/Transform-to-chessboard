@@ -1,0 +1,68 @@
+Observations:
+
+If we swap two rows then number of
+ones in those rows will remain same.
+Number of ones in the respective columns
+will remain same. Thus, number of ones and
+zeroes in each row and column can differ by
+at most 1 (odd case).
+
+From, the above observation we can say
+that there can only be two kinds of rows
+where they are compliment of  each other.
+
+These conditions are a must for a possible
+ans to exist.
+Now, swaps can be found row wise and column
+wise.
+
+CODE :
+    class Solution {
+    public:
+        const int inf = 1e9;
+        int movesToChessboard(vector<vector<int>>& board) {
+            int n = board.size();
+            set<vector<int>> S;
+            for (auto v : board) S.insert(v);
+            if (S.size() > 2) return -1;
+            if (S.size() == 2) {
+                // second one should be reverse of the first one
+                vector<int> v1 = *S.begin(), v2 = *S.rbegin();
+                for (int i=0;i<n;i++){
+                    if (v1[i] == v2[i]) return -1;
+                }
+            }
+
+            int row_1 = 0, col_1 = 0, row_0, col_0;
+            for (int i=0;i<n;i++) {
+                col_1 += board[i][0] == 1;
+                row_1 += board[0][i] == 1;
+            }
+            row_0 = n - row_1;
+            col_0 = n - col_1;
+            if (abs(row_0 - row_1) > 1 || abs(col_0 - col_1) > 1) return -1;
+            vector<int> pat1, pat2;
+            // pat1 = 0101010
+            // pat2 = 1010101
+            for (int i=0;i<n;i++) {
+                pat1.push_back(i & 1);
+                pat2.push_back(!pat1.back());
+            }
+            int x1=0 , y1=0, x2=0, y2=0;
+            for (int i=0;i<n;i++){
+                x1 += board[0][i] != pat1[i];
+                y1 += board[i][0] != pat1[i];
+                x2 += board[0][i] != pat2[i];
+                y2 += board[i][0] != pat2[i];
+            }
+
+            // pattern is not possible if the number of mismatches are odd
+            if (x1 & 1) x1 = inf;
+            if (y1 & 1) y1 = inf;
+            if (x2 & 1) x2 = inf;
+            if (y2 & 1) y2 = inf;
+
+            return min(x1, x2) / 2 + min(y1, y2) / 2;
+        }
+    };
+

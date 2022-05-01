@@ -1,0 +1,43 @@
+Approach:
+    I will maintain a stack which will contain
+    the indexes of chars which are '('. And
+    each index will have a corresponding value
+    i.e the length of the balanced bracket sequence
+    after that.
+    ( '(())()()()' )
+    i              j
+    In this case the element at index i wil store a
+    value of 10. Now when I will find the corresponding
+    jth element I will store the new value i.e 10 + 2
+    int the element before the index i in the stack and
+    will update my ans.
+
+CODE:
+    class Solution {
+    public:
+        int longestValidParentheses(string s) {
+            int n = s.size();
+            map<int, int> mp;
+            vector<int> S;
+            S.push_back(-1);
+            int ans = 0;
+            for (int i = 0; i < n; i++) {
+                int c = s[i];
+                if (!S.size() || c == '(') {
+                    if (c == '(') S.push_back(i);
+                } else {
+                    // current char is ')'
+                    if (S.back() == -1) {
+                        mp[S.back()] = 0;
+                        continue;
+                    };
+                    int j = S.back();
+                    int val = mp[j] + 2;
+                    S.pop_back();
+                    mp[S.back()] += val;
+                    ans = max(ans, mp[S.back()]);
+                }
+            }
+            return ans;
+        }
+    };
