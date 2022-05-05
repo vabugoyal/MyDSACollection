@@ -1,0 +1,55 @@
+1) sort
+2) map
+3) use input array as map
+4) maths : S = n * (n + 1) / 2 - m + r, P = 1 * 2 * .... * n * r / m
+
+Approach:
+    Arr is
+    1 2 3 4 ..... r ..... r ... n
+    Missing number is replace by repeating number.
+    We will XOR the above array and numbers from
+    1 to n.
+    We will have the XOR of m and r
+    where m = missing, r = repeating
+    Now, we will try to find any set bit
+    in m ^ r. Clearly, that bit will be either in m or
+    in r. We will divide the number of the following
+    arrays in two parts.
+    1 2 3 4 ..... r ..... r ... n
+    1 2 3 4 ..... r ..... m ... n
+    Number with this   Numbers with this bit
+        bit set             not set
+    (XOR all these)      (XOR all these)
+       = r/m                  = r/m
+    We will iterate over the array to find
+    which one is missing and which one is repeating.
+
+
+
+CODE:
+    int *findTwoElement(int *arr, int n) {
+        // code here
+        int X = 0, r, m;
+        for (int i=0;i<n;i++) {
+            X ^= arr[i] ^ (i + 1);
+        }
+        // X = m ^ r;
+        int b = -1;
+        for (int bit=0;bit<20;bit++) {
+            if (X >> bit & 1) b = bit;
+        }
+        int have = 0, dont_have = 0;
+        for (int i=0;i<n;i++) {
+            if (arr[i] >> b & 1) have ^= arr[i];
+            else dont_have ^= arr[i];
+            if ((i + 1) >> b & 1) have ^= (i + 1);
+            else dont_have ^= (i + 1);
+        }
+        r = have, m = X ^ r;
+        for (int i=0;i<n;i++) {
+            if (arr[i] == m) swap(r, m);
+        }
+        int * res = new int(2);
+        res[0] = r; res[1] = m;
+        return res;
+    }

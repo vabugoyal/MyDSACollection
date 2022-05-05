@@ -1,0 +1,70 @@
+Approach:
+    Primes less than 30 are
+    2 3 5 7 11 13 17 19 23 29
+    10 primes are there.
+    We will only consider good numbers
+    (where frequency of each prime is at most 1)
+    We will create a mask of it where on bits
+    represents the primes which are in that number.
+    Now, since each of these masks can be used only once
+    and also the ordering does not matter.
+    So, will be like a coin change II dp.
+
+    Ones will be left. For each subset we can take any
+    number of ones.
+
+CODE:
+    class Solution {
+    public:
+        vector<int> primes = {2,3,5,7,11,13,17,19,23,29};
+        const long long M = 1e9 + 7;
+        const int bits = 10;
+
+        int numberOfGoodSubsets(vector<int>& nums) {
+            map<int, int> mp;
+            int one = 0;
+            for (auto x : nums) {
+                one += x == 1;
+                vector<int> v(bits);
+                int mask = 0;
+                for (int i=0;i<bits;i++) {
+                    int y = x, cnt = 0, p = primes[i];
+                    while(y % p == 0) {cnt++, y=y/p;}
+                    v[i] = cnt;
+                    mask |= (cnt > 0) * (1 << i);
+                }
+                int valid = 1;
+                for (int i=0;i<bits;i++) {
+                    if (v[i] > 1) valid = 0;
+                }
+                if (valid && mask) mp[mask]++;
+            }
+
+            long long ans = 0;
+            vector<long long> dp(1 << bits);
+            dp[0] = 1;
+
+            for (auto p : mp) {
+                long long curr_mask = p.first, cnt = p.second;
+                for (int mask=(1<<bits)-1;mask;mask--) {
+                    // check if curr_mask can be use
+                    if ((mask | curr_mask) == mask){
+                        dp[mask] += cnt * dp[mask ^ curr_mask];
+                        dp[mask] %= M;
+                    }
+                }
+            }
+
+            for (int mask=1;mask<1<<bits;mask++) {
+                ans += dp[mask];
+                ans %= M;
+            }
+
+            while(one--) {
+                ans *= 2;
+                ans %= M;
+            }
+            ans %= M;
+            return ans;
+        }
+    };

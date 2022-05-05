@@ -1,0 +1,89 @@
+Approach:
+    dp[mask][i] = minimum length of string required to build the
+                  rest of the solution where the partial solution
+                  which is already built is represented by mask
+                  and i represents the last word which I used.
+
+
+CODE:
+    class Solution {
+    public:
+        const int inf = 1e9;
+        const pair<int, int> VOID = {-1, -1};
+        string shortestSuperstring(vector<string>& words) {
+            // just tell the last word
+            int bits = words.size();
+            vector<vector<int>> COST(bits, vector<int>(bits));
+
+            for(int i=0;i<bits;i++) {
+                for (int j=0;j<bits;j++) {
+                    if (i ^ j) {
+                        COST[i][j] = left(words[i], words[j]).size();
+                    }
+                }
+            }
+
+
+            vector<vector<int>> dp(1 << bits, vector<int>(bits, inf));
+            vector<vector<pair<int, int>>> next(1 << bits, vector<pair<int, int>>(bits, VOID));
+
+            // initialising the dp
+            for (int i=0;i<bits;i++) dp[(1 << bits) - 1][i] = 0;
+            int start = -1, val = inf;
+
+            for (int mask = (1 << bits) - 2; mask >= 0; mask--) {
+                for (int j = 0; j < bits; j++) {
+                    if (!(mask == 0) && !(mask >> j & 1)) continue;
+                    dp[mask][j] = inf;
+                    for (int bit=0;bit<bits;bit++) {
+                        if (mask >> bit & 1) continue;
+
+                        // this can be a new possibility
+                        int new_mask = mask | (1 << bit);
+                        int x = (mask == 0 ? words[bit].size() : COST[j][bit]);
+                        int candidate = x + dp[new_mask][bit];
+
+                        if (candidate < dp[mask][j]) {
+                            dp[mask][j] = candidate;
+                            next[mask][j] = {new_mask, bit};
+                            // storing the initial state for building the ans
+                            if (mask == 0) {
+                                if (dp[mask][bit] < val) {
+                                    val = dp[mask][j]; start = bit;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            // constructing the optimal solution
+            int curr_mask = 0, curr_i = start;
+            string ans, prev = "";
+            while(curr_mask != -1) {
+                ans += left(prev, words[curr_i]);
+                int next_mask, next_i;
+                prev = words[curr_i];
+                next_mask = next[curr_mask][curr_i].first;
+                next_i = next[curr_mask][curr_i].second;
+                curr_mask = next_mask;
+                curr_i = next_i;
+            }
+
+            return ans;
+
+        }
+
+        string left(string a, string b) {
+            int n1 = a.size();
+            for (int i=0;i<n1;i++) {
+                string s = a.substr(i);
+                int x = s.size();
+                if (b.substr(0, x) == s) {
+                    return b.substr(x);
+                }
+            }
+            return b;
+        }
+    };

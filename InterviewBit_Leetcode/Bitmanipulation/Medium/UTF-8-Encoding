@@ -1,0 +1,32 @@
+CODE:
+    class Solution {
+    public:
+        bool validUtf8(vector<int>& data) {
+            int n = data.size();
+            int i=0;
+            while(i < n) {
+                // find the one bits in this
+                int one_bits = 0, x = data[i];
+                for (int i=7;i>=0;--i) {
+                    if (x >> i & 1) one_bits++;
+                    else break;
+                }
+                if (one_bits == 0) {
+                    i++; continue;
+                }
+                if (one_bits == 1 || one_bits >= 5) {
+                    return false;
+                }
+                int new_i = i + one_bits;
+                if (new_i - 1 >= n) return false;
+                i++;
+                while(i < new_i) {
+                    int x = data[i++];
+                    if ((x >> 6) != 2) return false;
+                }
+
+                i = new_i;
+            }
+            return true;
+        }
+    };

@@ -1,0 +1,44 @@
+Approach:
+	Rather than giving hats to persons, I will 
+	assign hats to persons. 
+	dp[mask][I] = ways to distribute hats given that
+		      set bit represented by the mask are 
+		      already assigned some hat.
+	
+CODE:
+	class Solution {
+public:
+    const long long M = 1e9 + 7;
+    int numberWays(vector<vector<int>>& hats) {
+        // will give person to hats
+        // for each hat I will decide which person can take that hat
+        int H = 40, P = hats.size();
+        vector<vector<long long>> people(H);
+        for (int person=0; person<P;person++) {
+            for (auto hat : hats[person]) {
+                people[hat - 1].push_back(person);
+            }
+        }
+        int bits = P;
+        vector<vector<long long>> dp(1 << bits, vector<long long>(H + 1));
+        dp[0][H] = 1;
+        
+        for (int hat = H - 1;hat>=0;hat--) {
+            for (int mask=0;mask<1<<bits;mask++) {
+                for (auto person : people[hat]) {
+                    if ((mask >> person) & 1) {
+                        int new_mask = mask ^ (1 << person);
+                        dp[mask][hat] += dp[new_mask][hat + 1];
+                    }
+                }
+                dp[mask][hat] += dp[mask][hat + 1];
+                dp[mask][hat] %= M;
+            }
+        }
+        
+        int ans = dp[(1 << bits) - 1][0];
+        return ans;
+        
+        
+    }
+};		
