@@ -2,20 +2,21 @@ We will given a string and a pattern.
 We have to tell whether that pattern is contained
 in that string in linear time.
 
-The unneeded stuff which we are doing in the
-naive way is the following:
-is we have a mismatch at some point then
-we are the checking the string from the
-start again rather at any point
-we can already store what length of the
-prefix of already matched at point before
-the current point and start from the corresponding
-next point.
+We will have two pointers i and j.
+i will move in s and j will move in p.
+we will do i++ and j++ when s[i] == p[j].
+Now, when we find a mismatch we have have
+to know that at which point to start in the
+pattern to save time.
+This will be done with the help of KMP.
+
+
+
 
 CODE:
     vector<int> prefix_function(string s) {
         int n = (int)s.length();
-        vector<int> pi(n);
+        vector<int> pi(n); // lps = longest prefix which is also a suffix
         for (int i = 1; i < n; i++) {
             int j = pi[i-1];
             while (j > 0 && s[i] != s[j])
@@ -37,6 +38,7 @@ CODE:
 
     // pi[i] =  longest prefix of pattern which is contained in the
     //          suffix[i] of the string s
+    // j is moving in the pattern
 
     for (int i = 1; i < n1; ++i) {
         int j = pi[i - 1];

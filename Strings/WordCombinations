@@ -1,0 +1,78 @@
+Approach:
+    We can have a dp[i] = ans for suffix i
+    At any dp state try all the words and
+    check if they can form some substr
+    s[i..j] and then add dp[j + 1] to ans.
+    Checking will take total length of words at
+    each state.
+    We will do the checking efficiently using a
+    string trie.
+
+CODE:
+
+    const int mxN = 5050;
+    int dp[mxN];
+
+    struct trieNode {
+        trieNode ** next;
+        int cnt;
+        trieNode() {
+            next = new trieNode * [26];
+            for (int i = 0; i < 26; ++i) {
+                next[i] = NULL;
+            }
+            cnt = 0;
+        }
+    };
+
+
+    struct stringTrie {
+        trieNode * head;
+
+        void init(){
+            head = new trieNode();
+        }
+
+        void insert(string s) {
+            trieNode * curr = head;
+            for (int i = 0; i < s.size(); ++i) {
+                int x = s[i] - 'a';
+                if (!curr->next[x]) curr->next[x] = new trieNode();
+                curr = curr->next[x];
+                if (i == s.size() - 1) curr->cnt++;
+            }
+        }
+
+        int val(string &s, int i, int n) {
+            trieNode * curr = head;
+            int x = s[i] - 'a';
+            if (!curr->next[x]) return 0;
+            curr = curr->next[x];
+            int prev = curr->cnt;
+            int res = 0;
+            for (int j = i; j < n; ++j) {
+                // curr is pointing at the curr elemenent
+                if (!curr) break;
+                addSelf(res, curr->cnt * dp[j +  1]);
+                curr = j == n - 1 ? NULL : curr->next[s[j + 1] - 'a'];
+            }
+            return res;
+        }
+    };
+
+
+    void solve() {
+        string s; cin >> s;
+        int n = s.size();
+        int k; cin >> k;
+        stringTrie sT; sT.init();
+        for (int i = 0; i < k; ++i) {
+            string word; cin >> word;
+            sT.insert(word);
+        }
+        dp[n] = 1;
+        for (int i = n - 1; i >= 0; --i) {
+            dp[i] = sT.val(s, i, n);
+        }
+        pr(dp[0])
+    }
