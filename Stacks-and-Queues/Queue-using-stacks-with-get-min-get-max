@@ -1,0 +1,36 @@
+struct Queue  {
+    // used stack to implement queue
+
+    vl R, MR, mR, L, ML, mL;
+
+    void insert(int x) {
+        R.push_back(x);
+        MR.push_back(!MR.size() ? x : max(MR.back(), x));
+        mR.push_back(!mR.size() ? x : min(mR.back(), x));
+    }
+
+    void pop() {
+        shift();
+        if (!L.size()) return;
+        L.pop_back(); ML.pop_back(); mL.pop_back();
+    }
+
+    void shift() {
+        if (!L.size()) {
+            while(R.size()) {
+                int x = R.back(); R.pop_back(); mR.pop_back(); MR.pop_back();
+                L.push_back(x);
+                ML.push_back(!ML.size() ? x : max(ML.back(), x));
+                mL.push_back(!mL.size() ? x : min(mL.back(), x));
+            }
+        }
+    }
+
+    int getMin() {
+        return min(mL.size() ? mL.back() : inf, mR.size() ? mR.back() : inf);
+    }
+
+    int getMax() {
+        return max(ML.size() ? ML.back() : -inf, MR.size() ? MR.back() : -inf);
+    }
+};

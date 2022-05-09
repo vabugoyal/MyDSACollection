@@ -1,0 +1,35 @@
+POP  : O(n)
+PUSH : O(1)
+TOP  : O(n)
+
+class MyStack {
+    queue<int> Q;
+public:
+    MyStack() {
+
+    }
+
+    void push(int x) {
+        Q.push(x);
+    }
+
+    int pop() {
+        int x = Q.size() - 1;
+        while(x--) Q.push(Q.front()), Q.pop();
+        int ans = Q.front();
+        Q.pop();
+        return ans;
+    }
+
+    int top() {
+        int x = Q.size() - 1;
+        while(x--) Q.push(Q.front()), Q.pop();
+        int ans = Q.front();
+        Q.push(Q.front()), Q.pop();
+        return ans;
+    }
+
+    bool empty() {
+        return Q.empty();
+    }
+};

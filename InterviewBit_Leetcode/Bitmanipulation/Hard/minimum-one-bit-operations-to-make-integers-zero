@@ -1,0 +1,86 @@
+Approach:
+    N will follow the following sequence of moves
+    1xxxxxxx -> ..... -> 11000000 -> 01000000 -> ..... -> 0
+    Lets say n is 10011000.
+                  76543210
+    I want to solve it for
+    7th bit and convert the rest of the
+    number to 00000000. This will happen when
+    I have the number converted to
+    11000000.
+    i.e go(7, 0) = go(6, 1) + 1 + dp[6]
+    where dp[6] is the minimum number of moves
+    to turn 1000000 to 0.
+
+CODE:
+    class Solution {
+    public:
+        int n;
+        vector<int> dp;
+        int minimumOneBitOperations(int N) {
+            n = N;
+            if (n == 0) return 0;
+            int L = -1;
+            int bits = 31;
+            dp.resize(bits);
+            dp[0] = 1;
+            for (int i=1;i<bits;i++) dp[i] = 2 * dp[i - 1]+1;
+            for (int i=0;i<bits;i++) {
+                if (check(i, n)) L = i;
+            }
+            return go(L, 0);
+        }
+
+        int go(int i, int need) {
+            // need == 1 : 100000...
+            // need == 0 : 000000...
+            // Base Case
+            if (i == 0) {
+                return check(i, n) != need;
+            }
+            if (need == 1) {
+                if (check(i, n)) return go(i - 1, 0);
+                else return go(i - 1, 1) + 1 + dp[i - 1];
+            } else {
+                if (!check(i, n)) return go(i - 1, 0);
+                else return go(i - 1, 1) + 1 + dp[i - 1];
+            }
+        }
+
+        bool check(int i, int mask){
+            return mask >> i & 1;
+        }
+    };
+
+
+Some other approaches:
+    Consider a simple case where n is a power of 2
+    say 100000 .. n zeroes
+    let dp[n] = moves required to turn this to 0
+    here to turn this to 0 we have to first flip
+    n - 1 bit which will require dp[n - 1] operations
+    so dp[n] = dp[n - 1] + 1 + dp[n - 1]
+
+    Now, I will solve for n, say n is 1010010
+    If I had only 1000000 then moves would be dp[6]
+    it would have included the moves used to create 10000
+    so this need to be substracted from the ans
+    similarly we would have calculated the ans for 10000
+
+CODE:
+    int minimumOneBitOperations(int n) {
+        int bits = 31;
+        vector<int> dp(bits);
+        dp[0] = 1;
+        for (int i=1;i<bits;i++) dp[i] += 2 * dp[i - 1] + 1;
+        int ans = 0, take = 1;
+        for (int bit = bits - 1;bit>=0;bit--) {
+            if (check(bit, n)) {
+                if (take) ans += dp[bit];
+                else ans -= dp[bit];
+                take = 1 - take;
+            }
+        }
+        return ans;
+    }
+

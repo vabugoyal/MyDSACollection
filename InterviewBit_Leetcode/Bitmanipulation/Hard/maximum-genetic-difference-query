@@ -1,1 +1,11 @@
 Approach:
+    Initially have a TRIE which will support the following
+    operations:
+    a) insert
+    b) delete
+    c) find max XOR
+    Now, do a dfs on the tree.
+    Add the parent node while going to
+    its child and the remove it when dfs
+    if completed for that subtree.
+    On the way find the max XOR val.

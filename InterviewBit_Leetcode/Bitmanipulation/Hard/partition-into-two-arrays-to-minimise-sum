@@ -1,0 +1,56 @@
+Approach:
+    We will try to reach the sum of
+    one subset as close as possible to
+    S / 2.
+
+
+
+CODE:
+    class Solution {
+    public:
+        const int inf = 1e9;
+        int minimumDifference(vector<int>& nums) {
+            int bits = nums.size() / 2;
+            vector<set<int>> mp(bits + 1);
+            int S = accumulate(nums.begin(), nums.end(), 0LL);
+            for (int mask=0;mask<1<<bits;mask++) {
+                int s = 0;
+                int offset = bits;
+                for (int bit=0;bit<bits;bit++) {
+                    if (mask >> bit & 1) s += nums[bit + bits];
+                }
+                mp[ones(mask)].insert(s);
+            }
+
+            int ans = inf;
+            for (int mask=0;mask<1<<bits;mask++) {
+                int s = 0;
+                for (int bit=0;bit<bits;bit++) {
+                    if (mask >> bit & 1) s += nums[bit];
+                }
+                int O1 = ones(mask);
+                int O2 = bits - O1;
+                int need = S / 2 - s;
+
+                // try to reach as close as you can to need
+                auto it = mp[O2].lower_bound(need);
+                if (it!=mp[O2].end()) {
+                    int avai = *it;
+                    int got = s + avai;
+                    ans = min(ans, abs(S - 2 * got));
+                }
+                if (it!=mp[O2].begin()) {
+                    int avai = *--it;
+                    int got = s + avai;
+                    ans = min(ans, abs(S - 2 * got));
+                }
+            }
+
+            return ans;
+
+        }
+
+        int ones(int x) {
+            return __builtin_popcount(x);
+        }
+    };
