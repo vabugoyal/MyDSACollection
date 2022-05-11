@@ -1,0 +1,37 @@
+Approach:
+    We will observe kmp algo a bit carefully.
+    pi[i] = longest suffix which is also a prefix in s[...i].
+    Let j = n - 1;
+    first ans will be pi[j]
+    ans += {pi[j], }
+    then we have to solve for
+    j = pi[pi[j] - 1]
+    ans += {pi[j] - 1, }
+    we will keep on changing j until the element
+    we are pushing is not 0
+
+CODE:
+
+        string s; cin >> s;
+        int n = s.size();
+        vl pi(n);
+        for (int i = 1; i < n; ++i) {
+            int j = pi[i - 1];
+            while(j && s[i] != s[j]) {
+                j = pi[j - 1];
+            }
+            if (s[i] == s[j]) j++;
+            pi[i] = j;
+        }
+
+        vl ans;
+        int j = n;
+        while(j) {
+            j = pi[j - 1];
+            if (j) ans.push_back(j);
+        }
+        sortv(ans)
+        show(ans)
+
+
+

@@ -1,0 +1,107 @@
+Approach1:
+    lets say if I have a bar of height h at
+    any point then I will take care of water filled
+    using that bar and the previous bars. this way
+    at any moment I will have bars in the decreasing order.
+
+CODE1:
+    class Solution {
+    public:
+        int trap(vector<int>& height) {
+            vector<pair<int, int>> S;
+            int ans = 0;
+            int n = height.size();
+            for (int i=0;i<n;i++) {
+                int h = height[i];
+                int base = 0;
+                while(S.size() && S.back().first <= h) {
+                    ans += (i - S.back().second - 1) * (S.back().first - base);
+                    base = S.back().first;
+                    S.pop_back();
+                }
+                if (S.size()) ans += (i - S.back().second - 1) * (h - base);
+                S.push_back({h, i});
+            }
+            return ans;
+
+
+
+        }
+    };
+
+
+
+
+Approach2:
+    To know how much water can be stored above
+    any bar we can find the max height to the left and
+    to the right of it. take the min of those and
+    add min(L, R) - height to ans if this is positive.
+
+CODE:
+    class Solution {
+    public:
+        const int inf = 1e9;
+        int trap(vector<int>& height) {
+            // find the max element right side
+            // find the max element left side
+            int n = height.size();
+            vector<int> L(n), R(n);
+            int ans = 0;
+            for (int i=0;i<n;i++) {
+                L[i] = i == 0 ? height[i] : max(L[i - 1], height[i]);
+            }
+            for (int i=n-1;i>=0;--i) {
+                R[i] = i == n - 1 ? height[i] : max(R[i + 1], height[i]);
+            }
+            for (int i=1; i<n-1;i++) {
+                ans += max(0, min(L[i-1], R[i+1]) - height[i]);
+            }
+
+            return ans;
+
+        }
+    };
+
+
+
+
+Approach3:
+    I will have two pointers. l and r
+    l = 0, r = n - 1
+    and will store the L = max heights[...l - 1] and R = max heights[r - 1 ...]
+    if (L > R) {
+        // this implies we are sure about the
+        // water stored above the right bar and we can move the right pointer
+        ans += R - heights[r]
+    } else {
+        ans += L - heights[l]
+    }
+
+CODE:
+    class Solution {
+    public:
+        const int inf = 1e9;
+        int trap(vector<int>& height) {
+            int n = height.size();
+            int L = 0, R = 0;
+            int l = 0, r = n - 1;
+            int ans = 0;
+            while(l <= r) {
+                if (L > R) {
+                    ans += max(0, R - height[r]);
+                    R = max(R, height[r]);
+                    r--;
+                } else {
+                    ans += max(0, L - height[l]);
+                    L = max(L, height[l]);
+                    l++;
+                }
+            }
+
+            return ans;
+
+
+
+        }
+    };

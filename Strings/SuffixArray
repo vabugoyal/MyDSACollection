@@ -1,0 +1,43 @@
+CODE:
+    // Time complexity: O(nlog^2(n))
+
+    string s; cin >> s;
+    s.push_back('$');
+    int n = s.size();
+    vl c(n), a(n);
+    // c[i] = class of suff[i]
+    // a[i] = which suff is at position i
+    {
+        // 0 case
+        vector<pair<char, int>> p;
+        for (int i = 0; i < n; ++i) {
+            p.push_back({s[i], i});
+        }
+        sortv(p)
+        for (int i = 0; i < n; ++i) {
+            a[i] = p[i].second;
+        }
+        for (int i = 1; i < n; ++i) {
+            if (p[i].first == p[i - 1].first) c[p[i].second] = c[p[i - 1].second];
+            else c[p[i].second] = c[p[i - 1].second] + 1;
+        }
+    }
+    int k = 1;
+    while(k < n) {
+        vector<pair<pl, int>> p;
+        for (int i = 0; i < n; ++i) {
+            p.push_back({{c[i], c[(i + k) % n]}, i});
+        }
+        sortv(p);
+        for (int i = 0; i < n; ++i) {
+            a[i] = p[i].second;
+        }
+        for (int i = 1; i < n; ++i) {
+            if (p[i].first == p[i - 1].first) c[p[i].second] = c[p[i - 1].second];
+            else c[p[i].second] = c[p[i - 1].second] + 1;
+        }
+        k <<= 1;
+    }
+
+    show(a)
+
