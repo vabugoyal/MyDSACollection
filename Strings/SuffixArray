@@ -1,43 +1,155 @@
 CODE:
-    // Time complexity: O(nlog^2(n))
 
-    string s; cin >> s;
-    s.push_back('$');
-    int n = s.size();
-    vl c(n), a(n);
-    // c[i] = class of suff[i]
-    // a[i] = which suff is at position i
-    {
-        // 0 case
-        vector<pair<char, int>> p;
-        for (int i = 0; i < n; ++i) {
-            p.push_back({s[i], i});
-        }
-        sortv(p)
-        for (int i = 0; i < n; ++i) {
-            a[i] = p[i].second;
-        }
-        for (int i = 1; i < n; ++i) {
-            if (p[i].first == p[i - 1].first) c[p[i].second] = c[p[i - 1].second];
-            else c[p[i].second] = c[p[i - 1].second] + 1;
-        }
-    }
-    int k = 1;
-    while(k < n) {
-        vector<pair<pl, int>> p;
-        for (int i = 0; i < n; ++i) {
-            p.push_back({{c[i], c[(i + k) % n]}, i});
-        }
-        sortv(p);
-        for (int i = 0; i < n; ++i) {
-            a[i] = p[i].second;
-        }
-        for (int i = 1; i < n; ++i) {
-            if (p[i].first == p[i - 1].first) c[p[i].second] = c[p[i - 1].second];
-            else c[p[i].second] = c[p[i - 1].second] + 1;
-        }
-        k <<= 1;
-    }
+    class Solution {
+    public:
+        string lastSubstring(string s) {
+            s.push_back('$');
+            int n = s.size();
+            vector<int> c(n), pos(n);
+            // c[i]   = class of ith substring
+            // pos[i] = index of the ith substring in lexicographical order
 
-    show(a)
+            {
+                // 0 case
+                vector<pair<char, int>> a(n);
+                for (int i=0;i<n;i++) a[i] = {s[i], i};
+                sort(a.begin(), a.end());
+                for (int i=0;i<n;i++) pos[i] = a[i].second;
+                c[a[0].second] = 0;
+                for (int i=1;i<n;i++) {
+                    if (a[i].first == a[i - 1].first) {
+                        c[a[i].second] = c[a[i - 1].second];
+                    } else {
+                        c[a[i].second] = c[a[i - 1].second] + 1;
+                    }
+                }
+            }
+            // for (int i=0;i<n;i++) cout << c[i] << endl;
+            int k = 1;
+            while(k < n) {
+                vector<pair<pair<int, int>,int>> a(n);
+                for (int i=0;i<n;i++) {
+                    a[i] = {{c[i], c[(i + k) % n]}, i};
+                }
+                radix_sort(a);
+                for (int i=0;i<n;i++) pos[i] = a[i].second;
+                c[a[0].second] = 0;
+                for (int i=1;i<n;i++) {
+                    if (a[i].first == a[i - 1].first) {
+                        c[a[i].second] = c[a[i - 1].second];
+                    } else {
+                        c[a[i].second] = c[a[i - 1].second] + 1;
+                    }
+                }
+                k <<= 1;
+            }
+            // for (int i=0;i<n;i++) cout << pos[i] << endl;
+            string ans = s.substr(pos[n - 1]);
+            ans.pop_back();
+            return ans;
+        }
 
+
+        void radix_sort(vector<pair<pair<int, int>, int>> &a) {
+            // will sort the rest by the first element
+            int n = a.size();
+
+            {
+                vector<int> cnts(n), ptr(n);
+                for (auto x : a) cnts[x.first.second]++;
+                for (int i=1;i<n;i++) {
+                    ptr[i] = ptr[i - 1] + cnts[i - 1];
+                }
+                vector<pair<pair<int, int>, int>> new_a(n);
+                for (auto x : a) new_a[ptr[x.first.second]++] = x;
+                a = new_a;
+            }
+
+            {
+                vector<int> cnts(n), ptr(n);
+                for (auto x : a) cnts[x.first.first]++;
+                for (int i=1;i<n;i++) {
+                    ptr[i] = ptr[i - 1] + cnts[i - 1];
+                }
+                vector<pair<pair<int, int>, int>> new_a(n);
+                for (auto x : a) new_a[ptr[x.first.first]++] = x;
+                a = new_a;
+            }
+        }
+
+    };
+
+
+
+
+
+
+We get get the first part of the radix sort in easier way.
+
+Optimisation:
+    struct Solution {
+        // variables
+        void solve() {
+            string s; cin >> s;
+            s.push_back('$');
+            int n = s.size();
+            vector<int> c(n), pos(n);
+            // c[i]   = class of ith substring
+            // pos[i] = index of the ith substring in lexicographical order
+
+            {
+                // 0 case
+                vector<pair<char, int>> a(n);
+                for (int i=0;i<n;i++) a[i] = {s[i], i};
+                sort(a.begin(), a.end());
+                for (int i=0;i<n;i++) pos[i] = a[i].second;
+                c[a[0].second] = 0;
+                for (int i=1;i<n;i++) {
+                    if (a[i].first == a[i - 1].first) {
+                        c[a[i].second] = c[a[i - 1].second];
+                    } else {
+                        c[a[i].second] = c[a[i - 1].second] + 1;
+                    }
+                }
+            }
+            // for (int i=0;i<n;i++) cout << c[i] << endl;
+            int k = 1;
+            while(k < n) {
+                for (int i = 0; i < n; ++i) {
+                    pos[i] = (pos[i] - k + n) % n;
+                }
+                count_sort(pos, c);
+                vl new_c(n);
+                new_c[pos[0]] = 0;
+                for (int i=1;i<n;i++) {
+                    pl prev = {c[pos[i - 1]], c[(pos[i - 1] + k) % n]};
+                    pl now = {c[pos[i]], c[(pos[i] + k) % n]};
+                    if (prev == now) {
+                        new_c[pos[i]] = new_c[pos[i - 1]];
+                    } else {
+                        new_c[pos[i]] = new_c[pos[i - 1]] + 1;
+                    }
+                }
+                c = new_c;
+                k <<= 1;
+            }
+            // for (int i=0;i<n;i++) cout << pos[i] << endl;
+            show(pos)
+
+
+        }
+
+        void count_sort(vl &pos, vl &c) {
+            // will sort the rest by the first element
+            int n = pos.size();
+            vector<int> cnts(n), ptr(n);
+            for (auto x: c) cnts[x]++;
+            for (int i = 1; i < n; i++) {
+                ptr[i] = ptr[i - 1] + cnts[i - 1];
+            }
+            vl new_p(n);
+            for (auto x: pos) new_p[ptr[c[x]]++] = x;
+            pos = new_p;
+
+        }
+    };

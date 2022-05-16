@@ -1,0 +1,57 @@
+Approach:
+    This could be solved using a suffix array.
+    But time limit may exceed.
+
+    We know that the ans will start with the
+    max character of the string as its first char.
+    Now, we will push all those indexes where the
+    char equal max char in the string in a vector v.
+    We will have an offset which will initially be set
+    to 1.
+
+    We update vector v until we have only one element
+    left in v.
+
+    How to update v?
+
+    for a given offset we will find the max character
+    i.e. max(s[v[i] + offset] .. )
+    keep only those which are equal to max and
+    if v[i - 1] + offset == v[i] then v[i] is also useless.
+
+    Each character will be traversed at most once
+    in all the updates.
+
+CODE:
+    class Solution {
+    public:
+        string lastSubstring(string s) {
+            int n = s.size();
+            char M = *max_element(s.begin(), s.end());
+            cout << M << endl;
+            vector<int> v;
+            for (int i=0;i<n;i++) {
+                if (s[i] == M) v.push_back(i);
+            }
+            int offset = 1;
+            while(v.size() > 1) {
+                string pos_M;
+                for (auto x : v) {
+                    if (x + offset < n) pos_M.push_back(s[x + offset]);
+                }
+                char new_M = *max_element(pos_M.begin(), pos_M.end());
+                vector<int> new_v;
+                for (int i=0;i<v.size();i++) {
+                    if (v[i] + offset >= n) continue;
+                    if (i && v[i - 1] + offset == v[i]) continue;
+                    if (s[v[i] + offset] != new_M) continue;
+                    new_v.push_back(v[i]);
+                }
+                v = new_v;
+                offset++;
+            }
+
+            return s.substr(v.back());
+        }
+
+    };

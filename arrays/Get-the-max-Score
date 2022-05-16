@@ -1,0 +1,42 @@
+Approach:
+    We have some elements common in
+    nums1 and nums2. I will have two
+    iterators i and j moving in nums1 and
+    nums2 respectively.
+    I will be having two dps.
+    Will move nums1 pointer if nums1[i] < nums2[j]
+    and vice versa
+    when nums1[i] == nums2[j] then I will
+    update both the dps with their max.
+
+CODE:
+    class Solution {
+    public:
+        const long long M = 1e9 + 7;
+        const long long inf = 1e18;
+        int maxSum(vector<int>& nums1, vector<int>& nums2) {
+            int n1 = nums1.size(), n2 = nums2.size();
+            vector<long long> dp1(n1), dp2(n2);
+            // finding the connections
+            int i = 0, j = 0;
+            while(i < n1 || j < n2) {
+                long long U = i >= n1 ? inf : nums1[i];
+                long long D = j >= n2 ? inf : nums2[j];
+                if (i < n1) dp1[i] = U + (i == 0 ? 0 : dp1[i - 1]);
+                if (j < n2) dp2[j] = D + (j == 0 ? 0 : dp2[j - 1]);
+
+                if (U == D) {
+                    long long maxi = max(dp1[i], dp2[j]);
+                    dp1[i] = maxi;
+                    dp2[j] = maxi;
+                    i++; j++;
+                } else if (U > D) {j++;}
+                else { i++;}
+
+            }
+            long long ans = max(dp1.back(), dp2.back()) % M;
+            return ans;
+        }
+
+
+    };

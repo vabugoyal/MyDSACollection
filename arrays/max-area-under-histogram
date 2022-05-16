@@ -1,0 +1,63 @@
+Approach1:
+    I will brute force over the height of
+    the rectangle. If height[i] is the height
+    of the rectangle then I want to know the
+    min index upto which this is the min and
+    similarly the max index on the right side.
+    I will maximise the ans by height[i] * (r - l + 1)
+
+    Calculation of l and r can be done using a segtree
+    and using stacks as well.
+
+CODE:
+    class Solution {
+    public:
+        int largestRectangleArea(vector<int>& nums) {
+            int n = nums.size();
+            vector<pair<int, int>> SL, SR;
+            vector<int> L(n), R(n);
+            for (int i=0;i<n;i++) {
+                int x = nums[i];
+                while(SL.size() && SL.back().first >= x) SL.pop_back();
+                L[i] = SL.size() ? SL.back().second + 1 : 0;
+                SL.push_back({x, i});
+            }
+            for (int i=n-1;i>=0;i--) {
+                int x = nums[i];
+                while(SR.size() && SR.back().first >= x) SR.pop_back();
+                R[i] = SR.size() ? SR.back().second - 1 : n - 1;
+                SR.push_back({x, i});
+            }
+
+            int ans = 0;
+            for (int i=0;i<n;i++) {
+                int x = nums[i];
+                int l = L[i], r = R[i];
+
+                ans = max(ans, (r - l + 1) * x);
+            }
+            return ans;
+        }
+    };
+
+
+
+
+Approach2:
+    The above code uses two iterations and two stacks.
+    We will try to do it using a single stack.
+    We will the max ans which we can get a particular
+    index from left.
+
+
+
+
+
+
+
+
+
+
+
+
+

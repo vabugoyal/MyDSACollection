@@ -1,0 +1,70 @@
+Approach:
+    I will brute force over the number
+    of complete gardens and then try to
+    maximise the number of flowers in the
+    garden with minimum flowers.
+
+CODE:
+    class Solution {
+    public:
+        long long maximumBeauty(vector<int>& flowers, long long newFlowers, int target, int full, int partial) {
+            int n = flowers.size();
+            long long ans = 0;
+            sort(flowers.begin(), flowers.end(), greater<int>());
+            vector<long long> suffSums(n);
+            for (int i=n-1;i>=0;--i) {
+                suffSums[i] = (i == n - 1 ? 0 : suffSums[i + 1]) + flowers[i];
+            }
+
+
+            auto ok = [&](int j, long long have) {
+                // will return true if I can achieve minimum for
+                // a[j...] as flowers[j]
+                long long achieve = flowers[j];
+                long long need = 1LL * (n - j) * achieve - suffSums[j];
+                return have >= need;
+            };
+
+            int j = 0;
+
+            for (int i=0; i<n; i++) {
+                if (flowers[i] >= target) {
+                    if (i == n - 1) maxSelf(ans, 1LL * full * n);
+                    continue;
+                }
+
+                if (i == n - 1) {
+                    // make this full || achieve target  - 1
+                    long long max_this = flowers[n - 1] + newFlowers;
+                    if (max_this >= target) maxSelf(ans, 1LL * full * n);
+                    max_this = min(1LL * target - 1, max_this);
+                    maxSelf(ans, 1LL * full * (n - 1) + 1LL * max_this * partial);
+                    break;
+
+                }
+
+                // gardens are not full at this point
+                j = max(i, j);
+                while(j < n && !ok(j, newFlowers)) j++;
+                long long more = newFlowers - (1LL * flowers[j] * (n - j) - suffSums[j]);
+                long long max_this = flowers[j] + more / (n - j);
+                max_this = min(1LL * target - 1, max_this);
+                maxSelf(ans, 1LL * full * (i) + 1LL * max_this * partial);
+
+                long long need = target - flowers[i];
+                if (newFlowers < need) {
+                    break;
+                }
+                newFlowers -= need;
+
+
+
+            }
+            return ans;
+
+        }
+
+        void maxSelf(long long &a, long long b) {
+            a = max(a, b);
+        }
+    };
