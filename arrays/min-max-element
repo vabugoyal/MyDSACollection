@@ -1,0 +1,11 @@
+Approach1:
+    Idea is to first compare the two
+    elements of the array and then comparing
+    the corresponding elements with the
+    corresponding curr_min and curr_max
+
+Tournament Method:
+    Find the min-max of the left subarray
+    and right subarray and then use that
+    to find the ans for curr subarray.
+

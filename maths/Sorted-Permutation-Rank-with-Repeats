@@ -1,0 +1,70 @@
+Approach:
+    typedef long long ll;
+
+    // some constants
+    const ll mxn = 1e3;
+    const ll mod = 1000003;
+
+    vector<ll> fact(mxn,0), in(mxn, 0);
+    ll mpow(ll base, ll exp){
+       ll res = 1;
+       while(exp > 0){
+           if(exp&1) res = (res*base)%mod;
+           base = (base*base) % mod;
+           exp >>= 1;
+       }
+       return res;
+    }
+
+    ll inv(ll v){
+        if(v<=1) return v;
+        return (inv(mod%v) * (mod - mod/v)) % mod;
+    }
+
+    void calc_fact(){
+        fact[0] = 1;
+        fact[1] = 1;
+        in[1] = 1;
+        in[0] = 1;
+        for(ll i=2; i<mxn; i++){
+            fact[i] = (fact[i-1] * i)%mod;
+            in[i] = (in[i-1] * mpow(i, mod - 2)) %mod;
+            // in[i] = (in[i-1] * inv(i) %mod
+        }
+    }
+
+    ll ncr(ll N, ll r){
+        ll ans = fact[N];
+        ans = (ans * in[r])%mod;
+        ans = (ans * in[N-r])%mod;
+        return ans;
+    }
+
+    int Solution::findRank(string A) {
+        calc_fact();
+        int n = A.size();
+        ll ans = 0;
+        map<char, int> ms;
+        for (auto c : A) ms[c]++;
+
+        for (int i=0;i<n;i++) {
+            // finding how many permutations can be formed
+            // if I used a char less than this
+            for (auto [x, c] : ms) {
+                if (x >= A[i]) break;
+                map<char, int> new_ms = ms; new_ms[x]--;
+                ll D = 1;
+                for (auto [y, z] : new_ms) {
+                    D *= in[z];
+                    D %= mod;
+                }
+                ans += (fact[n - i - 1] * D);
+                ans %= mod;
+            }
+
+            ms[A[i]]--;
+            if (ms[A[i]] == 0) ms.erase(ms.find(A[i]));
+        }
+        ans = (ans + 1) % mod;
+        return ans;
+    }
