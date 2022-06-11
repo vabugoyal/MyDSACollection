@@ -1,2 +1,67 @@
-Approach:
+Approach1:
+    O(m + n) time O(1) space
+    Use two pointers to iterate over
+    the elements of the sorted array.
+
+Approach2:
+    merged array will be
+    a1 .. several bs .... a2 ... several  bs .. a3 ... .. an
+    Make a binary search on a and the find
+    number of elements smaller than b[m] in
+    the merged array.
+    Implemented on interviewbit.
+    O(log(m) * log(n)) time
+
+Approach3:
+    We can do a binary search on the ans.
+    Where ans is the number of elements smaller
+    than x in the merged array.
+    O(log(m) * log(n)) time
+
+
+
+
+
+Approach4:
+    Make a brute force on how many element I
+    will chose from the first array and based
+    on that know how many to pick from the
+    second array. Try to move left or right
+
+CODE:
+    const int inf = 1e9;
+    double Solution::findMedianSortedArrays(const vector<int> &A, const vector<int> &B) {
+        int n1 = A.size(), n2 = B.size();
+        if (!n2) return (n1 & 1) ? A[n1/2] : (0.0 + A[(n1-1)/2] + A[(n1+1)/2]) / 2;
+        if (!n1) return (n2 & 1) ? B[n2/2] : (0.0 + B[(n2-1)/2] + B[(n2+1)/2]) / 2;
+        int l = -1, r = n1 - 1;
+        while(l <= r) {
+            int i = (l + r) / 2;
+            int j = (n1 + n2 + 1) / 2 - (i + 1) - 1;
+
+            int L1 = i < 0 ? -inf : A[i];
+            int L2 = j < 0 ? -inf : j >= n2 ? inf : B[j];
+            int R1 = i + 1 < 0 ? -inf : i + 1 >= n1 ? inf : A[i + 1];
+            int R2 = j + 1 < 0 ? -inf : j + 1 >= n2 ? inf : B[j + 1];
+
+            int ok = R2 >= L1 && R1 >= L2;
+            if (ok) {
+                int N = n1 + n2;
+                double a = max(L1, L2);
+                double b = min(R1, R2);
+                double med = (N & 1) ? a : (a + b) / 2;
+                return med;
+            }
+
+            if (L1 > R2) {
+                r = i - 1;
+            } else {
+                l = i + 1;
+            }
+        }
+
+    }
+
+    O(log(m + n)) time
+
 
