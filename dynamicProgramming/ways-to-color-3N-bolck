@@ -1,0 +1,70 @@
+Approach:
+    1. Encode the state of a column
+    2. Find the next of all the states
+
+Code:
+    const int M = 1e9 + 7;
+    const int mxN = 1e5 + 10;
+    int dp[mxN][64];
+    vector<int> combs;
+    int done = 0;
+
+    vector<int> decode(int j) {
+        int b = j / 16; j = j % 16;
+        int c = j / 4; j = j % 4;
+        int d = j / 1;
+        return {d, c, b};
+    }
+
+    void make() {
+        int m = 0, M = 3 * (1 + 4 + 16);
+        for (int i=m;i<=M;i++) {
+            vector<int> dec = decode(i);
+            if (dec[0] != dec[1] && dec[1] != dec[2]) {
+                combs.push_back(i);
+            }
+        }
+    }
+
+    int is_valid(int x, int y) {
+        vector<int> v1 = decode(x);
+        vector<int> v2 = decode(y);
+        return v1[0] != v2[0] && v1[1] != v2[1] && v1[2] != v2[2];
+    }
+
+    int Solution::solve(int A) {
+        if (!done) make(), done = 1;
+        int n = A;
+        // initialise
+        for (int i=0;i<n;i++) {
+            for (int j=0;j<64;j++) {
+                dp[i][j] = 0;
+            }
+        }
+        // base cases
+        for (auto x : combs) dp[0][x] = 1;
+        vector<vector<int>> next(64);
+        for (auto x : combs) {
+            for (auto y : combs) {
+                if (is_valid(x, y)) next[x].push_back(y);
+            }
+        }
+
+        for (int i=0;i<n-1;i++) {
+            for (auto x : combs) {
+                // update the next state
+                for (auto y : next[x]) dp[i + 1][y] += dp[i][x], dp[i + 1][y] %= M;
+            }
+        }
+
+
+        int ans = 0;
+        for (auto x : combs) {
+            ans += dp[n - 1][x];
+            ans %= M;
+        }
+        return ans;
+
+
+    }
+

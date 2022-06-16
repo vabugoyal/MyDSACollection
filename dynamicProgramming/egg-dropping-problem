@@ -57,3 +57,53 @@ CODE:
 
 
 
+
+More optimised code
+const int mxN = 105;
+const int mxN2 = 1e4 + 10;
+const int inf = 1e9;
+int dp[mxN2][mxN];
+
+int Solution::solve(int A, int B) {
+    // make a guess about the first floor which you will choose
+    // initialise
+    for (int i=0;i<mxN;i++) {
+        for (int j=0;j<mxN;j++) {
+            dp[i][j] = 0;
+        }
+    }
+
+    // dp[i][j] = solve for i number of floors given j eggs
+    for (int i=1;i<=A;i++) dp[1][i] = 1;
+    dp[1][0] = inf;
+
+    for (int i=2;i<=B;i++) {
+        dp[i][0] = inf;
+        for (int j=1;j<=A;j++) {
+            dp[i][j] = inf;
+            int l = 1, r = i;
+            while(l <= r) {
+                int m = (l + r) / 2;
+                if (dp[i - m][j] <=  dp[m - 1][j - 1]) {
+                    dp[i][j] = 1 + dp[m - 1][j - 1];
+                    dp[i][j] = min(dp[i][j], 1 + max(dp[i - (m - 1)][j], dp[(m - 1) - 1][j - 1]));
+                    r = m - 1;
+                } else {
+                    l = m + 1;
+                }
+
+            }
+        }
+    }
+
+    return dp[B][A];
+
+
+
+
+
+
+
+
+
+}
