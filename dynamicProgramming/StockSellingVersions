@@ -1,0 +1,15 @@
+Version1: Only one transaction.
+Approach:
+    Find the best buying day for some
+    selling day.
+
+Version: Unlimited transactions + transaction fee
+Approach:
+    dp[i][own] = tell me the max profit for the
+                 days i, i + 1, ..., n - 1 given
+                 that I own a stock or not
+    this can be maintained using two variables
+
+Version: Unlimited transactions + cool down
+Approach:
+    Do yourself :|

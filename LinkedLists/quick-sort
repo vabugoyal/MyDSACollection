@@ -1,0 +1,61 @@
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+
+int random(int l, int r) {
+    return rand() % (r - l + 1) + l;
+}
+
+ListNode* Solution::sortList(ListNode* A) {
+    if (!A) return A;
+    ListNode *L = new ListNode(-1);
+    ListNode *E = new ListNode(-1);
+    ListNode *G = new ListNode(-1);
+    ListNode *LS = L, *GS = G, *ES = E;
+
+    int n = 0;
+    ListNode *C = A;
+    while(C) n++, C = C->next;
+
+    int r = random(1, n);
+
+    C = A;
+    while(--r) C = C->next;
+    int M = C->val;
+
+    C = A;
+    while(C) {
+        if (C->val < M) L->next = C, L = C;
+        if (C->val == M) E->next = C, E = C;
+        if (C->val > M) G->next = C, G = C;
+        C = C->next;
+    }
+
+    L->next = NULL; G->next = NULL; E->next = NULL;
+    ListNode * SortedLS = sortList(LS->next);
+    ListNode * SortedGS = sortList(GS->next);
+    ListNode * SortedL = SortedLS;
+    while(SortedL && SortedL->next) SortedL = SortedL->next;
+
+    ES = ES->next;
+
+    // SortedLS ... (SortedL) || ES ... E || SortedGS
+
+    if (E) E->next = SortedGS;
+
+    if (SortedL) {
+        if (ES) SortedL->next = ES;
+        else SortedL->next = SortedGS;
+        return SortedLS;
+    } else {
+        if (ES) return ES;
+        return SortedGS;
+    }
+
+
+}

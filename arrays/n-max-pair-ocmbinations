@@ -1,0 +1,31 @@
+Problem: interviewbit.com/problems/n-max-pair-combinations/
+Approach:
+    We know the max element will be A[n - 1] + B[n - 1].
+    Now, the next can either be A[n - 1] + B[n - 2] || A[n - 2] + B[n - 1].
+    So, I will push both of there in the heap and
+    take the max of these. Now, I will keep popping the max
+    element from the heap until i get n elements and will
+    keep pushing the next corresponding elements in the heap.
+
+CODE:
+    vector<int> Solution::solve(vector<int> &A, vector<int> &B) {
+        int n = A.size();
+        sort(A.begin(), A.end());
+        sort(B.begin(), B.end());
+        set<array<int, 3>> s;
+        s.insert({A[n - 1] + B[n - 1], n - 1, n - 1});
+        vector<int> ans;
+        while(ans.size() < n) {
+            array<int, 3> ar = *--s.end();
+            s.erase(--s.end());
+            ans.push_back(ar[0]);
+            int i = ar[1], j = ar[2];
+            if (i) s.insert({A[i - 1] + B[j], i - 1, j});
+            if (j) s.insert({A[i] + B[j - 1], i, j - 1});
+        }
+
+        return ans;
+    }
+
+
+
