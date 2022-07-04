@@ -1,0 +1,79 @@
+
+// N - upper se node pe aaya hu
+// L - left se node pe aaya hu
+// R - right se node pe aaya hu
+
+vector<int> Solution::inorderTraversal(TreeNode* A) {
+    vector<pair<TreeNode * , char>> S;
+    vector<int> ans;
+    TreeNode * C = A;
+    // getting the starting node
+    S.push_back({A, 'N'});
+
+    while(S.size()) {
+        auto [N, state] = S.back();
+        if (state == 'N') {
+            S.back().second = 'L';
+            if (N->left) S.push_back({N->left, 'N'});
+        } else if (state == 'L') {
+            ans.push_back(N->val);
+            S.back().second = 'R';
+            if (N->right) S.push_back({N->right, 'N'});
+        } else {
+            S.pop_back();
+        }
+    }
+    return ans;
+}
+
+
+vector<int> Solution::preorderTraversal(TreeNode* A) {
+    vector<pair<TreeNode * , char>> S;
+    vector<int> ans;
+    TreeNode * C = A;
+    // getting the starting node
+    S.push_back({A, 'N'});
+
+    while(S.size()) {
+        auto [N, state] = S.back();
+        if (state == 'N') {
+            ans.push_back(N->val);
+            S.back().second = 'L';
+            if (N->left) S.push_back({N->left, 'N'});
+        } else if (state == 'L') {
+            S.back().second = 'R';
+            if (N->right) S.push_back({N->right, 'N'});
+        } else {
+            S.pop_back();
+        }
+    }
+    return ans;
+}
+
+
+
+vector<int> Solution::postorderTraversal(TreeNode* A) {
+    vector<pair<TreeNode * , char>> S;
+    vector<int> ans;
+    TreeNode * C = A;
+    // getting the starting node
+    S.push_back({A, 'N'});
+
+    while(S.size()) {
+        auto [N, state] = S.back();
+        if (state == 'N') {
+            S.back().second = 'L';
+            if (N->left) S.push_back({N->left, 'N'});
+        } else if (state == 'L') {
+            S.back().second = 'R';
+            if (N->right) S.push_back({N->right, 'N'});
+        } else {
+            ans.push_back(N->val);
+            S.pop_back();
+        }
+
+    }
+    return ans;
+}
+
+

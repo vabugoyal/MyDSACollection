@@ -1,0 +1,35 @@
+Hashing
+Use the val of the node to know if node is visited
+Use a dummy node
+CODE:
+    ListNode* Solution::detectCycle(ListNode* A) {
+        ListNode *hell = new ListNode(0), *next;
+        while(A) {
+            next = A->next;
+            if (next == hell) return A;
+            A->next = hell;
+            A = next;
+        }
+
+    return NULL;
+
+
+Floyd's cycle finding algo
+
+ListNode* Solution::detectCycle(ListNode* A) {
+    if (!A) return A;
+    ListNode *slow = A, *fast = A;
+    do {
+        if (!fast->next || !fast->next->next || !slow->next) return NULL;
+        fast = fast->next->next;
+        slow = slow->next;
+    } while(fast != slow);
+
+    slow = A;
+    if (slow == fast) return slow;
+    while(slow->next != fast->next) {
+        slow = slow->next;
+        fast = fast->next;
+    }
+    return slow->next;
+}

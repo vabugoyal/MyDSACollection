@@ -1,0 +1,41 @@
+Using BFS
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+const int mxN = 1e4, mxN2 = 2 * mxN + 10;
+vector<int> Absnodes[mxN2];
+vector<int> *nodes = Absnodes + mxN + 1;
+
+void go(TreeNode * A) {
+    if (!A) return;
+    queue<pair<TreeNode*, int>> q;
+    q.push({A, 0});
+    while(q.size()) {
+        auto [N, x] = q.front(); q.pop();
+        nodes[x].push_back(N->val);
+        if (N->left) q.push({N->left, x - 1});
+        if (N->right) q.push({N->right, x + 1});
+    }
+
+}
+
+vector<vector<int>> Solution::verticalOrderTraversal(TreeNode* A) {
+    if (!A) return {};
+    // initialise
+    for (int i=0;i<mxN2;i++) Absnodes[i].clear();
+    go(A);
+    vector<vector<int>> ans;
+    for (int i=0;i<mxN2;i++) {
+        if (Absnodes[i].size()) {
+            ans.push_back(Absnodes[i]);
+        }
+    }
+    return ans;
+}
+

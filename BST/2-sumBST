@@ -1,0 +1,5 @@
+Write inorder and use two pointers.
+Space: O(n) time O(nlog(n))
+
+How to do in O(height) time where height is the
+height of the tree?

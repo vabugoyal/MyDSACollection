@@ -1,0 +1,36 @@
+We will use the lengths of the lists
+to know some info about the common
+part of the lists.
+
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+ListNode* Solution::getIntersectionNode(ListNode* A, ListNode* B) {
+    int n1 = 0, n2 = 0;
+    ListNode *C1 = A, *C2 = B;
+    while(C1) n1++, C1 = C1->next;
+    while(C2) n2++, C2 = C2->next;
+    if (n1 < n2) swap(A, B), swap(n1, n2);
+    // len(A) > len(B)
+    int d = n1 - n2;
+    C1 = A, C2 = B;
+    while(d--) {
+        C1 = C1->next;
+    }
+
+    while(C1 && C2) {
+        if (C1 == C2) return C1;
+        if (!C1->next || !C2->next) break;
+        if (C1->next == C2->next) return C1->next;
+        C1 = C1->next; C2 = C2->next;
+    }
+
+    return NULL;
+
+}

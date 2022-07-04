@@ -1,0 +1,27 @@
+/**
+ * Definition for binary tree with next pointer.
+ * struct TreeLinkNode {
+ *  int val;
+ *  TreeLinkNode *left, *right, *next;
+ *  TreeLinkNode(int x) : val(x), left(NULL), right(NULL), next(NULL) {}
+ * };
+ */
+
+void Solution::connect(TreeLinkNode* A) {
+    if (!A) return;
+    TreeLinkNode * currLayer = A, *nextLayer = new TreeLinkNode(-1), *nextStart = nextLayer;
+    while(currLayer) {
+        // currLayer is set
+        TreeLinkNode* C = currLayer;
+        while(C) {
+            if (C->left) nextLayer->next = C->left, nextLayer = C->left;
+            if (C->right) nextLayer->next = C->right, nextLayer = C->right;
+            C = C->next;
+        }
+        // update currLayer and nextLayer
+        currLayer = nextStart->next;
+        nextStart->next = NULL;
+        nextLayer = nextStart;
+    }
+}
+
