@@ -1,0 +1,25 @@
+vector<vector<int>> Solution::fourSum(vector<int> &A, int B) {
+    int n = A.size();
+    sort(A.begin(), A.end());
+    map<int, set<pair<int, int>>> mp;
+    set<vector<int>> ans;
+    // guessing about the last two elements
+    for (int i=0;i<n;i++) {
+        for (int j=i+1;j<n;j++) {
+            int a = A[i] + A[j];
+            if (mp[B - a].size()) {
+                for (auto &p : mp[B - a]) {
+                    auto [a, b] = p;
+                    vector<int> candidate = {a, b, A[i], A[j]};
+                    ans.insert(candidate);
+                }
+            }
+        }
+
+        for (int j=0;j<i;j++) {
+            mp[A[j] + A[i]].insert({A[j], A[i]});
+        }
+    }
+    return vector<vector<int>> (ans.begin(), ans.end());
+
+}

@@ -1,0 +1,66 @@
+const int inf = 1e9;
+vector<int> Solution::equal(vector<int> &A) {
+    int n = A.size();
+    vector<int> ans;
+    map<int, pair<int, int>> mp;
+    // A1 B1 C1 D1
+    for (int i=0;i<n;i++) {
+        for (int j=i+1;j<n;j++) {
+            int sum = A[i] + A[j];
+            if (!mp.count(sum)) continue;
+            auto [a, b] = mp[sum];
+            vector<int> candidate = {a, b, i, j};
+            if (!ans.size()) ans = candidate;
+            ans = min(ans, candidate);
+        }
+
+        for (int j=0;j<i;j++) {
+            int sum = A[j] + A[i];
+            pair<int, int> P = {j, i};
+            if (!mp.count(sum)) mp[sum] = P;
+            mp[sum] = min(mp[sum], P);
+        }
+    }
+
+    // A1 C1 .. B1 .. D1
+    // A1 C1 .. D1 .. B1
+    map<int, pair<int, int>> mp1, mp2;
+    for (int i=n-1;i>=0;--i) {
+        for (int j=0;j<i;++j) {
+            int diff = A[j] - A[i];
+            if (mp1.count(diff)) {
+                auto [a, b] = mp1[diff];
+                vector<int> candidate = {j, a, i, b};
+                if (!ans.size()) ans = candidate;
+                ans = min(ans, candidate);
+            }
+
+            if (mp2.count(diff)) {
+                auto [a, b] = mp2[diff];
+                vector<int> candidate = {j, a, i, b};
+                if (!ans.size()) ans = candidate;
+                ans = min(ans, candidate);
+            }
+
+        }
+
+        // update mp1 mp2
+        // A1 C1 .. B1 .. D1
+        // A1 C1 .. D1 .. B1
+        for (int j=i+1;j<n;j++) {
+            int diff1 = A[j] - A[i];
+            pair<int, int> P1 = {i, j};
+            if (!mp1.count(diff1)) mp1[diff1] = P1;
+            mp1[diff1] = min(mp1[diff1], P1);
+
+            int diff2 = A[i] - A[j];
+            pair<int, int> P2 = {j, i};
+            if (!mp2.count(diff2)) mp2[diff2] = P2;
+            mp2[diff2] = min(mp2[diff2], P2);
+
+        }
+
+    }
+
+    return ans;
+}

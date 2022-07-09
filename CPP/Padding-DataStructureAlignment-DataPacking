@@ -1,0 +1,59 @@
+DataStructureAlignment:
+        The address where a n-byte data
+        is stored must be divisible by n.
+
+We given padding to our struct elements to
+achieve data structure alignments.
+
+CODE:
+    #incl`ude <bits/stdc++.h>
+    using namespace std;
+
+
+    struct A {
+        char a;
+        short int b;
+        // 1 + 1 + 2 = 4
+    };
+
+
+    struct B {
+        short int a;
+        char b;
+        int c;
+        // 2 + 1 + 1 + 4 = 8
+    };
+    struct C {
+        char a;
+        double b;
+        int c;
+        // 1 + 7 + 8 + 4 = 20
+        // this will actually require 24 bits
+        // because if I have an array of these object
+        // then it might happen that double is not
+        // coming at an address which is a multiple of 8
+    };
+    struct D {
+        double a;
+        int b;
+        char c;
+        // 8 + 4 + 1 + 3 = 16
+    };
+
+    int32_t main() {
+        A a;
+        B b;
+        C c;
+        D d;
+
+        cout << sizeof(a) << endl;
+        cout << sizeof(b) << endl;
+        cout << sizeof(c) << endl;
+        cout << sizeof(d) << endl;
+    }
+
+
+
+Structure Packing:
+    Its about I don't want any padding.
+

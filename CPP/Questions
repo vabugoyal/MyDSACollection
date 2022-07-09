@@ -1,0 +1,45 @@
+How compilation works?
+    Initially we have header files(.h) and cpp files(.cpp).
+    The compilation process converts these to independent
+    object files.
+    Compilation consists of three parts:
+    1. Preprocessor(.i): replace macros, replace the content of header
+    files with the actual code, remove the comments, etc.
+    2. Compiler(.s): convert to assembly code
+    3. Assembler(.o): convert to machine code
+
+    Linker which links all the object file and convert
+    them into an executable(.exe). If definition of some symbol is
+    missing in obj files then we have to provide static libraries
+    during compilation.
+
+    If I get error of undefined reference then it means that something wrong
+    if going on in the linker.
+
+    Loader will load the executable into the operating system.
+
+
+
+Preprocessing:
+
+    Including a header file two time will not work because that will
+    give two definitions of the same function.
+    to handle this we can use something like this in hpp file where
+    declaration of the function are given
+
+    #ifndef SOURCE_HPP // if not defined source.hpp then define it otherwise not
+    #define SOURCE_HPP
+    int add(int a, int b);
+    #endif
+
+
+    Commands:
+    ./ to run executable
+    g++ -E main.cpp | to run the program through preprocessor stage
+    g++ main.cpp -o prog | to give default name to executable as prog
+
+
+Compiler and assembly:
+    Commands:
+    g++ -c main.cpp will make a obj file(.o) i.e main.o
+    g++ main.o source.o -o prog // this will like the two ojbect files into a single program called prog

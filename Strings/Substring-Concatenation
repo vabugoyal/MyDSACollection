@@ -1,0 +1,107 @@
+https://www.interviewbit.com/problems/substring-concatenation/
+
+
+
+
+struct TrieNode {
+    int id;
+    TrieNode **next;
+    TrieNode() {
+        id = -1;
+        next = new TrieNode*[26];
+        for (int i=0;i<26;i++) {
+            next[i] = NULL;
+        }
+    }
+};
+
+struct TRIE {
+    TrieNode * head;
+    TRIE() {
+        head = new TrieNode;
+    }
+    void insert(string s, int ID) {
+        int n = s.size();
+        TrieNode * curr = head;
+        for (int i=0;i<n;i++) {
+            int x = s[i] - 'a';
+            if (!curr->next[x]) curr->next[x] = new TrieNode;
+            curr = curr->next[x];
+        }
+        curr->id = ID;
+    }
+
+    int giveId(string s) {
+        int n = s.size();
+        TrieNode * curr = head;
+        for (int i=0;i<n;i++) {
+            int x = s[i] - 'a';
+            if (!curr->next[x]) return -1;
+            curr = curr->next[x];
+        }
+        return curr->id;
+    }
+};
+
+vector<int> Solution::findSubstring(string A, const vector<string> &B) {
+    // barfoothefoobarman
+    // aa aaaa
+    int n = A.size(), m = B.size();
+    if (!n || !m) return {};
+    int s = B[0].size();
+    vector<int> ans;
+
+    TRIE trie;
+
+    map<string, int> wordCnt;
+    for (auto word : B) wordCnt[word]++;
+    int ID = 0;
+
+    map<int, int> IDCnt;
+    for (auto [word, cnt] : wordCnt) {
+        trie.insert(word, ID);
+        IDCnt[ID] = cnt;
+        ID++;
+    }
+
+    int coverage = m * s;
+    for (int offset=0;offset<s;offset++) {
+        map<int, int> taken;
+        map<int, int> have = IDCnt;
+        queue<int> Q;
+        for (int i=offset;i<n;i+=s) {
+            // .... . . i(aaaaa) ....
+            string S = A.substr(i, s);
+            int id = trie.giveId(S);
+            if (id == -1) {
+                // restore every thing
+                for (auto [x, c] : taken) have[x] += c;
+                taken.clear();
+                while(Q.size()) Q.pop();
+                continue;
+            }
+            while(!have[id]) {
+                int prev_id = Q.front(); Q.pop();
+                taken[prev_id]--;
+                have[prev_id]++;
+            }
+            have[id]--;
+            if (!have[id]) have.erase(id);
+            taken[id]++;
+            Q.push(id);
+            if (!have.size()) {
+                ans.push_back(i - coverage + 1 + s - 1);
+            }
+            if (Q.size() >= m) {
+                int prev_id = Q.front(); Q.pop();
+                taken[prev_id]--;
+                have[prev_id]++;
+            }
+
+        }
+    }
+
+    return ans;
+
+
+}

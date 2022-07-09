@@ -1,0 +1,30 @@
+Encapsulation(Data Hiding):
+Abstraction(Implementation Hiding):
+
+Inheritance:
+    Types:
+        1. Single
+        2. Multi-level
+        3. Multiple
+        4. Hybrid
+        5. Hierarchical
+
+
+Polymorphism:
+    Compile-Time:
+        function
+        operator
+    Run-Time
+        function overriding in inheritance
+
+
+Difference between Abstraction and Encapsulation
+Abstraction:
+    Hiding implementation using abstract class
+    or interface. It happens at design level.
+Encapsulation:
+    It is a mechanism which binds together the code
+    and data it manipulates and keeps both safe from
+    outside interface and misuse. Hiding information
+    from the user using getters and setters. This can
+    be achieved using access modifiers.
