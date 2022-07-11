@@ -1,3 +1,4 @@
+------------------------------------------COMPILATION------------------------------------------
 How compilation works?
     Initially we have header files(.h) and cpp files(.cpp).
     The compilation process converts these to independent
@@ -43,3 +44,274 @@ Compiler and assembly:
     Commands:
     g++ -c main.cpp will make a obj file(.o) i.e main.o
     g++ main.o source.o -o prog // this will like the two ojbect files into a single program called prog
+
+
+
+
+
+
+
+
+
+
+
+Difference between reference and pointer?
+1. If we create a reference it will have the same memory address as that of the variable.
+   Pointer has its own address and may change the address of the variable it is pointing to.
+   Reference is like a constant pointer with automatic indirection i.e compiler will apply *
+   operator for you.
+2. Reference can't have NULL values.
+3. References does not store arithmetic operations.
+4. References does not have indirection.
+
+
+
+
+
+
+
+
+Function Pointers in C
+
+
+
+
+
+
+
+
+Use of friend function?
+1. For testing purpose
+2. To explicitly give rights to someone outside the class.
+
+
+
+
+
+
+
+
+
+
+Difference between plain enum and enum class
+
+symbols in plain enum has global scope which
+means you can't redeclare those as new symbols or variables.
+enum symbols get converted into integer which creates a
+problem
+enum Color{red, green , blue}
+            0     1       2
+enum People{good, bad}
+              0    1
+implies that red == good
+but symbols in enum class are not integers
+
+
+
+
+
+
+
+
+Big Endian: store data from lower to higher
+Little Endian: store data from higher to lower (block containing MSB will be stored first)
+
+check if system is little endian or big endian
+int main() {
+    unsigned int x = 1;
+    char *c = (char *)&x;
+    if (*c & 1) {
+        cout << "Little Endian" << endl;
+    } else {
+        cout << "Big Endian" << endl;
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+How to stop someone from taking address of your object?
+& operator is automatically overloaded by compiler in cpp
+1. You can overload the operator in the class and make it private.
+2. You can delete the operator from the class
+class Base {
+    int x;
+    Base * operator & () {
+        return this;
+    }
+    or
+    Base * operator & () = delete;
+}
+
+
+
+
+
+
+
+Void and void pointer
+1. only void means nothing
+2. Void * means pointer to anything (except function pointer, const, volatile)
+3. Malloc and calloc returns a void so we can typecast them into anything
+4. use to create generic function in cpp like cmp function in c (cmp take two void pointers as arguments)
+
+
+
+
+
+
+
+
+
+Constant Cast const_cast<int*>(some pointer which is a constant)
+    If we have a constant pointer then it will be a read only pointer
+    which mean we can't change the value at the memory it is pointing to.
+
+    We should use it only when actual referred obj is not constant otherwise it will cause undefined behaviour.
+    Used when using external lib or api and it want the data in non constant form.
+
+
+Reinterpret Cast reinterpret_cast<int*>(some string pointer)
+    it can perform dangerous conversions as it can typecast any
+    pointer to any other pointer. It is used to work with bits.
+
+    if we use this type of cast then it becomes a non portable cast.
+
+
+Static Cast
+    it performs conversion between types
+    Q. why use static cast when implicit conversion is involved?
+    Ans Easier to find all the conversions where static cast is involved.
+
+    used when conversion is provided through conversion constructor and
+    conversion operator.
+
+    static cast is more restrictive than C-style
+    C-style :int * p  = (char *) c;
+    this is a dangerous conversion and won't be allowed with static cast
+
+    static cast avoid cast from derived to private base pointer
+
+    use for all up casts but not for down casts
+    upcast: base class pointer is pointing to a derived class
+            object slicing happens when a derived class object is
+            assigned to a base class object i.e we can only access
+            base class members or virtual function using the base class
+            pointer.
+
+    now say we have two derived classes D1 and D2 and we type cast
+    D1 to B and then down cast B to D2 which is bad so we use dynamic cast for
+    that.
+
+
+Dynamic Cast:
+    works only on polymorphic base class (at least one virtual function)
+    because it uses this information about wrong down cast
+
+
+
+
+
+
+
+
+
+
+
+Returning an array from a function
+
+static keyword: whenever we create anything with static keyword
+                then that memory is not getting destroyed until your
+                whole program gets completed.
+CODE:
+        int * func() {
+            const int n = 3;
+            static int arr[n];
+            for (int i = 0; i < n; ++i) {
+                arr[i] = i + 1;
+            }
+            return arr;
+        }
+
+
+        int main() {
+            int *arr = func();
+            cout << arr[1] << endl;
+            return 0;
+        }
+
+
+Returning a 2D array from a function
+1. using a dynamic array using new operator
+2. using static keyword
+3. using struct
+
+
+
+
+
+
+
+When do we use initializer list?
+
+1. You cannot initialise non static constant data members without initializer list.
+        class Base {
+            const int _x;
+        public:
+            Base() : _x{0}  {};
+            Base(int x) : _x{x} {};
+
+        };
+
+
+2. You cannot initialize reference variable without using initializer list.
+        class Base {
+            int &_x;
+        public:
+            Base(int &x) : _x{x} {};
+        };
+
+3. You cannot initialise 'some' class object insider another class if
+   the 'some' class object is not having a zero parameter constructor.
+       class One {
+           int _x;
+       public:
+           One(int x): _x{x} {};
+       };
+
+       class Two {
+           One a;
+       public:
+           Two(One x): a{x} {};
+       };
+
+4. Calling the base class constructor form the child class
+        class Base {
+            int _x;
+        public:
+            Base(int x) : _x{x} {};
+        };
+
+        class Child : public Base {
+            int _y;
+        public:
+            Child(int x, int y): Base{x}, _y{y} {};
+        };
+
+5. Using initializer list to initialise the data will optimise the code.
+
+
+
+
+
+
+
+
+
+
