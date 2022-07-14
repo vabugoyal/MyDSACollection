@@ -106,6 +106,7 @@ enum People{good, bad}
 implies that red == good
 but symbols in enum class are not integers
 
+Best place to use enum: when we are dealing with limited set of values.
 
 
 
@@ -136,7 +137,10 @@ int main() {
 
 
 
+
+
 How to stop someone from taking address of your object?
+
 & operator is automatically overloaded by compiler in cpp
 1. You can overload the operator in the class and make it private.
 2. You can delete the operator from the class
@@ -150,6 +154,44 @@ class Base {
 }
 
 
+How to prevent someone from copying your objects?
+1. Keep copy constructor and assignment operator as private in your class.
+        class Base {
+        public:
+            int _x;
+            Base(){}
+            Base(int x) : _x{x} {}
+        private:
+            Base(Base &rhs) : _x{rhs._x} {}
+            void operator = (const Base& rhs) {_x = rhs._x;}
+
+        };
+
+2. Inherit dummy class with private copy constructor and assignment operator
+        class StopCopy {
+        public:
+            StopCopy() {}
+            StopCopy(StopCopy &stp) {}
+            void operator = (const StopCopy& rhs) {};
+        private:
+        };
+
+        class Base : public StopCopy {
+        public:
+            int _x;
+            Base() {}
+            Base(int x) : _x{x} {}
+        };
+
+3. Delete copy constructor and assignment operator from your class
+        class Base {
+            int _x;
+        public:
+            Base() {}
+            Base(int x) : _x{x} {}
+            Base(const Base & bs) = delete;
+            void operator = (const Base &rhs) = delete;
+        };
 
 
 
@@ -305,6 +347,214 @@ When do we use initializer list?
         };
 
 5. Using initializer list to initialise the data will optimise the code.
+
+
+
+
+
+
+
+How comma operator works?
+It works from left to right.
+int main() {
+    int v1, v2;
+    v1 = 1, 2, 3; // v1 = 1
+    v2 = (1, 2, 3); // v2 = 3
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+Constructor Delegation : using other parameterised constructor to make curr constructor
+class Base {
+    int _x, _y;
+public:
+    Base() : Base(0, 0) {};
+    Base(int a) : Base(a, 0) {};
+    Base(int a, int b) {
+        _x = a; _y = b;
+    };
+};
+
+
+
+
+
+
+Code Bloating:
+Code bloat is the production of code that is perceived as unnecessarily long, slow, or
+otherwise waste of resources.
+- declaring variables which are not even required
+- Giving two statements which could be merged to one.
+
+
+
+
+
+
+
+
+
+
+Diamond Problem in c++
+
+      A
+    /   \
+   B     C
+    \   /
+      D
+
+B is inheriting from A
+C is inheriting from A
+D is inheriting from D
+
+so, the variables which were in A class will be
+initialized twice through B and C
+
+    class A{ public: int _a;};
+    class B : virtual public A{ public: int _b;};
+    class C : virtual public A{ public: int _c;};
+    class D : public B, public C{ public: int _d;};
+
+
+    int main() {
+        D d;
+        d._b = 10;
+        d._c = 10;
+        d._d = 10;
+        d._a = 10;
+
+
+        return 0;
+    }
+
+
+
+
+
+
+
+
+
+
+Static and Dynamic Binding in cpp
+
+Static Binding: if function calling is known at compile time
+Dynamic Binding: if function calling is known at runtime time
+
+class Base {
+public:
+    int _B;
+    virtual void func() {cout << "Base class function is called." << endl;}
+};
+
+class Derived: public Base {
+public:
+    int _d;
+    void func() {cout << "Derived class function is called" << endl;}
+};
+
+void muFunc(Base *b) {
+    b->func();
+}
+
+int main() {
+    muFunc(new Base);
+    muFunc(new Derived);
+    return 0;
+}
+
+At compile time this will bind func to base class func.
+But that will be bind to derived class func when derived class
+pointer is passed. (Dynamic binding)
+
+
+
+
+
+
+Difference between range for loop and for_each in cpp?
+
+In for_each we can start from whatever index we want but not in for.
+In for_each we can pass a function to do something with the value.
+
+void func(int x) {
+    cout << x << endl;
+}
+
+int main() {
+    int ar[10];
+    for (int i=0;i<10;i++) ar[i] = i;
+    for (auto x : ar) {
+        cout << x << endl;
+    }
+    for_each(ar, ar + 10, [](int x) {
+       cout << x << endl;
+    });
+
+    for_each(ar, ar + 10, func);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+How cpp obtains function overloading?
+
+NAME MANGLING : cpp compiler changes the names of all functions to achieve function overloading.
+
+
+
+
+
+
+
+What is auto keyword in cpp?
+It is used for type deduction.
+
+
+
+
+
+
+
+Why we must return reference in copy assignment?
+To support channing assignment.
+a = b = c = d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
