@@ -114,10 +114,10 @@ Best place to use enum: when we are dealing with limited set of values.
 
 
 
-Big Endian: store data from lower to higher
-Little Endian: store data from higher to lower (block containing MSB will be stored first)
+Big Endian: MSB at lowest address
+Little Endian: LSB  at lowest address
 
-check if system is little endian or big endian
+Check if system is little endian or big endian?
 int main() {
     unsigned int x = 1;
     char *c = (char *)&x;
@@ -202,9 +202,8 @@ Void and void pointer
 2. Void * means pointer to anything (except function pointer, const, volatile)
 3. Malloc and calloc returns a void so we can typecast them into anything
 4. use to create generic function in cpp like cmp function in c (cmp take two void pointers as arguments)
-
-
-
+cannot use these pointers to dereference some address in memory
+arithmetic operations are not possible on them
 
 
 
@@ -430,7 +429,6 @@ initialized twice through B and C
         d._d = 10;
         d._a = 10;
 
-
         return 0;
     }
 
@@ -443,7 +441,7 @@ initialized twice through B and C
 
 
 
-Static and Dynamic Binding in cpp
+Static and Dynamic BindingBinding in cpp
 
 Static Binding: if function calling is known at compile time
 Dynamic Binding: if function calling is known at runtime time
@@ -540,12 +538,27 @@ a = b = c = d
 
 
 
+Virtual Destructor
+When we delete a child class object using a pointer of
+parent class then we have to define the constructor of
+the base class as virtual otherwise the destructor
+of virtual class will not be called and it may lead to memory
+leak.
+
+
+Virtual Constructor
+The virtual pointer is pointed to vtable in the constructor.
+If I make constructor as virtual then I won't be able to
+point vptr to the constructor pointer.
 
 
 
 
 
-
+Function pointer and call-backs
+if a reference of a function is passed to another
+function as an argument to call it then we call
+it a call-back function.
 
 
 
