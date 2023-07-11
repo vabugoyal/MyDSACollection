@@ -1,0 +1,71 @@
+class SparseTable {
+
+public:
+
+    static const int64_t MAX = 1000000;
+
+    const size_t N;
+
+    explicit SparseTable(const std::vector<int64_t>& data) : N(data.size()), _table(data.size()), _data(data) {
+        build();
+    }
+
+    explicit SparseTable(std::vector<int64_t>&& data) : N(data.size()), _table(data.size()) {
+        _data = std::vector<int64_t>(std::move(data));
+        build();
+    }
+
+    int64_t query(size_t L, size_t R) const {
+        size_t size = R - L + 1;
+        size_t index = -1;
+
+        while (size > 0) {
+            size /= 2;
+            index++;
+        }
+
+        size = 1LL << index;
+
+        return lcm(_table[L][index], _table[R - size + 1][index]);
+    }
+
+private:
+
+    std::vector<int64_t> _data;
+    std::vector<std::vector<int64_t>> _table;
+
+    static int64_t lcm(int64_t a, int64_t b) {
+        if (a >= MAX || b >= MAX) return MAX;
+        int64_t retval = (a * b) / std::gcd(a, b);
+        if (retval >= MAX) {
+            return MAX;
+        }
+        else {
+            return retval;
+        }
+    }
+
+    void build() {
+        for (int64_t i = N - 1; i >= 0; i--) {
+            int64_t current_lcm = _data[i];
+            if (current_lcm > MAX) {
+                current_lcm = MAX;
+            }
+            size_t size = 1;
+            _table[i].push_back(current_lcm);
+            size_t idx = 0;
+            while (i + size < N) {
+                if (_table[i + size].size() > idx) {
+                    current_lcm = lcm(current_lcm, _table[i + size][idx]);
+                }
+                else {
+                    current_lcm = lcm(current_lcm, _table[i + size].back());
+                }
+                _table[i].push_back(current_lcm);
+                size *= 2;
+                idx++;
+            }
+        }
+    }
+
+};
