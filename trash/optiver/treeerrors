@@ -1,0 +1,127 @@
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+
+enum ERRORS {INVALID_INPUT, DUPLICATE_PAIRS, MORE_THAN_TWO_CHILDREN, MULTIPLE_ROOTS, CONTAIN_CYCLE};
+
+
+void throwError(ERRORS error) {
+    switch (error) {
+        case ERRORS::INVALID_INPUT:
+            cout << "E1" << endl;
+            break;
+        case ERRORS::DUPLICATE_PAIRS:
+            cout << "E2" << endl;
+            break;
+        case ERRORS::MORE_THAN_TWO_CHILDREN:
+            cout << "E3" << endl;
+            break;
+        case ERRORS::MULTIPLE_ROOTS:
+            cout << "E4" << endl;
+            break;
+        case ERRORS::CONTAIN_CYCLE:
+            cout << "E5" << endl;
+            break;
+        default:
+            cout << "Unknown type error" << endl;
+    }
+}
+
+
+void treeError(string const & s) {
+    vector<string> links;
+    string last;
+    for (auto x : s) {
+        if (x == ' ') links.push_back(last), last.clear();
+        else last.push_back(x);
+    }
+    links.push_back(last);
+
+    map<char, vector<char>> tree;
+    for (auto link: links) {
+        if (link.size() != 5) {
+            throwError(INVALID_INPUT);
+            return;
+        }
+        if (!(link[0] == '(' and link[4] == ')' and link[2] == ',' and
+                            link[1] - 'A' < 26 and link[3] - 'A' < 26)) {
+            throwError(INVALID_INPUT);
+            return;
+        }
+        tree[link[1]].push_back(link[3]);
+    }
+
+
+    for (auto [parent, children] : tree) {
+        map<char, int> has_child;
+        for (auto child: children) {
+            if (has_child[child]) {
+                throwError(DUPLICATE_PAIRS);
+                return;
+            }
+            has_child[child] = 1;
+        }
+        if (children.size() > 2) {
+            throwError(MORE_THAN_TWO_CHILDREN);
+            return;
+        }
+    }
+
+    map<char, int> indegrees;
+    for (auto [parent, children] : tree) {
+        for (auto child:  children) indegrees[child]++;
+    }
+
+    queue<char> q;
+    for (auto [node, indegree] : indegrees) {
+        if (indegree == 0) {
+            q.push(node);
+        }
+    }
+
+    if (q.size() > 1) {
+        throwError(MULTIPLE_ROOTS);
+        return;
+    }
+
+    map<char, int> visited;
+    while(!q.empty()) {
+        char node = q.front(); q.pop();
+        if (visited[node]) {
+            throwError(CONTAIN_CYCLE);
+            return;
+        }
+        for (auto child: tree[node]) {
+            indegrees[child]--;
+            if (indegrees[child] == 0) q.push(child);
+        }
+    }
+
+
+
+
+}
+
+
+int32_t main()
+{
+
+    string input = "(A,B) (B,C) (A,E) (B,D) (A,C)";
+    treeError(input);
+
+
+
+
+
+
+
+
+    return 0;
+}

@@ -1,0 +1,47 @@
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+
+vector<int> days_in_month = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+int absoluteDays(int y, int m, int d) {
+    const int days_in_normal_year = 365;
+    const int days_in_leap_year = 366;
+    int leap_years = (y + 3) / 4;
+    int normal_years = y - leap_years;
+
+    int years_contribution = leap_years * days_in_leap_year + normal_years * days_in_normal_year;
+    int months_contribution = std::accumulate(days_in_month.begin(), days_in_month.begin() + m, 0LL);
+    int days_contribution = d;
+
+    int days = years_contribution + months_contribution + days_contribution;
+
+    if (y % 4 == 0 && (m > 2 || m == 2 && d == 29)) days++;
+
+    return days;
+}
+
+
+int daysBetween(int y1, int m1, int d1, int y2, int m2, int d2) {
+
+    return absoluteDays(y2, m2, d2) - absoluteDays(y1, m1, d1);
+
+}
+
+
+
+int32_t main()
+{
+
+    int days = daysBetween(2008, 2, 1, 2009, 2, 1);
+    cout << days << endl;
+
+    return 0;
+}
