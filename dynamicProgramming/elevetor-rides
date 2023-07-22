@@ -1,8 +1,59 @@
-STRUCTURE:
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
 
-Sub-Problems:
-        Given an array ending at index i.
-        What is the best possible way to reach top.
+#define int long long
+#define pr(X) cout << (X) << endl;
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+const int bits = 20;
+const int inf = 1e18;
+
+int32_t main()
+{
+    int n, x; cin >> n >> x;
+    vector<int> w(n);
+    for (auto &wi: w) cin >> wi;
+    // how will you describe the best and for 
+    // the mask : minimum number of rides and the
+    // minimum weight of the people which can go 
+    // in the last ride 
+    // now I want to find the answer for mask 
+    // of all the possible scenarios there will be some
+    // person who would have gone last 
+    // we will iterate over that person
+    // while doing that we would have covered all possibilities
+
+    pair<int, int> best[1<<n];
+    best[0] = {1, 0};
+    for (int mask = 1; mask < 1 << n; ++mask) {
+        best[mask] = {n + 1, 0};
+        for (int i = 0; i < n; ++i) {
+            if (mask >> i & 1) {
+                auto option = best[mask ^ (1 << i)];
+                if (option.second + w[i] <= x) {
+                    option.second += w[i];
+                } else {
+                    option.first += 1;
+                    option.second = w[i];
+                }
+                best[mask] = min(best[mask], option);
+            }
+        }
+    }
+
+    cout << best[(1 << n) - 1].first << endl;
 
 
 
+
+
+
+
+
+
+    return 0;
+}
