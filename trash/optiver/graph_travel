@@ -1,0 +1,191 @@
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+#define pr(X) cout << (X) << endl;
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+
+
+
+class Solution {
+
+
+
+    enum ValidationErrors{
+        E_OK = 0,
+        E1 = 1,
+        E2 = 2,
+        E3 = 3
+    };
+
+
+    string get_error(ValidationErrors err) {
+        switch (err) {
+            case E1: return "E1";
+                break;
+            case E2: return "E2";
+                break;
+            case E3: return "E3";
+                break;
+            default:
+                return "E_OK";
+        }
+    }
+
+    map<char, vector<pair<int, char>>> g;
+    char start, end;
+    int max_dis;
+    string route;
+
+public:
+
+    bool error_detected(ValidationErrors err) {
+        if (err != E_OK) {
+            cout << get_error(err) << endl;
+            return true;
+        }
+        return false;
+    }
+
+    void do_graph_travel(string const & edges, string const & condition) {
+        if (error_detected(create_graph(edges))) return;
+        if (error_detected(set_condition(condition))) return;
+        if (error_detected(check_possible_logical_errors())) return;
+        if (error_detected(find_shorted_routes())) return;
+        cout << this->route << endl;
+    }
+
+    ValidationErrors find_shorted_routes() {
+        map<char, int> dis, cnt, vis;
+        map<char, char> prev;
+        multiset<pair<int, char>> ms;
+        ms.insert({0, start});
+        dis[start] = 0;
+        cnt[start] = 1;
+        while(ms.size()) {
+            auto [d, node] = *ms.begin(); ms.erase(ms.begin());
+            if (vis.count(node)) continue;
+            vis[node] = 1;
+            for (auto [dx, to] : g[node]) {
+                if (!dis.count(to) || dis[to] > d + dx) dis[to] = d + dx, prev[to] = node, cnt[to] = cnt[node];
+                else if (dis[to] == d + dx) cnt[to] += cnt[node];
+                ms.insert({d + dx, to});
+            }
+        }
+        // disconnected graphs
+        for (auto [to, ends] : g)  if (!dis.count(to)) return E2;
+        if (dis[end] <= max_dis && cnt[end] > 1) return E2;
+        if (dis[end] > max_dis) return E3;
+        // built the route
+        vector<char> route_nodes;
+        int node = end;
+        while(true) {
+            route_nodes.push_back(node);
+            if (!prev.count(node)) break;
+            node = prev[node];
+        }
+        std::reverse(route_nodes.begin(), route_nodes.end());
+        string route;
+        for (int i = 0 ; i < route_nodes.size(); i++) {
+            route += route_nodes[i];
+            if (i != route_nodes.size() - 1) route += "->";
+        }
+        this->route = route;
+        return E_OK;
+    }
+
+    ValidationErrors check_possible_logical_errors() {
+        // duplicate edges
+        for (auto [from, ends] : g) {
+            set<char> tos;
+            for (auto to : ends) tos.insert(to.second);
+            if (tos.size() != ends.size()) return E2;
+        }
+        if (g.count(start) == 0 || g.count(end) == 0) return E2;
+        // one error is left which is to find the shortest route and
+        // number of such routes
+        return E_OK;
+    }
+
+    ValidationErrors set_condition(string const & condition) {
+        int n = condition.size();
+        if (4 >= n) return E1;
+        this->start = condition[0], this->end = condition[3];
+        bool is_valid_condition =   is_valid_node(condition[0]) &&
+                                    condition[1] == '-' &&
+                                    condition[2] == '>' &&
+                                    is_valid_node(condition[3]) &&
+                                    condition[4] == ',';
+        if (!is_valid_condition) return E1;
+        int i = 5;
+        string max_dis;
+        while(i < n && is_valid_digit(condition[i])) max_dis += condition[i++];
+        if (max_dis.size() == 0) return E1;
+        this->max_dis = stoll(max_dis);
+        return E_OK;
+    }
+
+    bool is_valid_node(char c) {
+        return c - 'A' < 26 && c - 'A' >= 0;
+    }
+
+    bool is_valid_digit(char c) {
+        return c - '0' < 10 && c - '0' >= 0;
+    }
+
+
+    ValidationErrors create_graph(string const & edges) {
+        int n = edges.size();
+        int i = 0;
+        while(i < n) {
+            if (i + 4 >= n) return E1;
+            int start = edges[i + 1], end = edges[i + 3];
+            bool valid_edge =   edges[i] == '[' &&
+                                is_valid_node(edges[i + 1]) &&
+                                edges[i + 2] == ',' &&
+                                is_valid_node(edges[i + 3]) &&
+                                edges[i + 4] == ',';
+            i = i + 5;
+            string weight;
+            while(i < n && is_valid_digit(edges[i])) weight += edges[i++];
+            if (weight.empty()) return E1;
+            valid_edge &= i < n && edges[i++] == ']';
+            if (i != n) valid_edge &= edges[i] == ' ';
+            i++;
+            g[start].push_back({stoll(weight), end});
+            g[end].push_back({stoll(weight), start});
+            if (!valid_edge) return E1;
+        }
+        return E_OK;
+    }
+
+
+
+
+
+
+
+};
+
+int32_t main()
+{
+    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+
+#ifndef ONLINE_JUDGE
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
+
+    string edges = "[A,B,3] [A,C,8] [C,D,2] [B,C,5]";
+    string condition = "A->D,10";
+    Solution solution;
+    solution.do_graph_travel(edges, condition);
+
+
+    return 0;
+}
