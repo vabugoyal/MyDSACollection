@@ -1,0 +1,68 @@
+https://www.interviewbit.com/problems/equal-average-partition/
+
+
+const int mxN = 101;
+const int mxS = 5005;
+bool pos[mxN][mxS][mxN];
+bool used[mxN][mxS][mxN];
+// next[i][S][j] = using A[i...] achieve sum S using j elements
+// used[i][S][j] = whether I used ith element
+
+vector<vector<int>> Solution::avgset(vector<int> &A) {
+    int n = A.size();
+    sort(A.begin(), A.end());
+    int T = 0;
+    for (auto x : A) T += x;
+
+    for (int i = 0; i <= n; i++) {
+        for (int s = 0; s <= T; s++) {
+            for (int j = 0; j <= n; j++) {
+                pos[i][s][j] = 0;
+                used[i][s][j] = 0;
+            }
+        }
+    }
+    pos[n][0][0] = 1;
+    for (int i = n - 1; i >= 0; --i) {
+        for (int s = 0; s <= T; s++) {
+            for (int j = 0; j <= n; j++) {
+                if (s >= A[i] && j >= 1 && pos[i + 1][s - A[i]][j - 1]) {
+                    used[i][s][j] = 1;
+                    pos[i][s][j] = 1;
+                } else {
+                    used[i][s][j] = 0;
+                    pos[i][s][j] = pos[i + 1][s][j];
+                }
+            }
+        }
+    }
+
+    for (int j = 1; j < n; j++) {
+        int need = (T * j) / n;
+        if (need * n == T * j && pos[0][need][j]) {
+            vector<int> L, R;
+            int curr = need;
+            int left = j;
+            for (int i = 0; i < n; i++) {
+                if (used[i][curr][left]) {
+                    L.push_back(A[i]);
+                    left--;
+                    curr -= A[i];
+                }
+            }
+
+            int l = 0;
+            for (int i = 0; i < n; i++) {
+                if (l < L.size() && A[i] == L[l]) l++;
+                else R.push_back(A[i]);
+            }
+            return {L, R};
+        }
+    }
+
+
+
+    return {};
+
+
+}
