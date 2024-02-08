@@ -1,0 +1,72 @@
+Internships
+[Trilogy Innovations]
+The best thing about TI is, you are not told what to do
+rather you allowed to build the roadmap and take control
+of the wheel, and drive the project till the end.
+I experimented a lot in trilogy innovations on the features
+are built.
+
+Since, the team size is small for a particular project
+so the ownership of the task or feature is very high on
+you. You have very less time to gain the learnings from
+senior devs.
+
+[Loop AI]
+Loop AI was a san francisco based startup. It provided me a
+complete startup exposure. Things were
+shipped to production really fast there. You are expected to
+do more in less time which even helped me in increasing my
+productivity.
+
+Everybody is so involved in their tasks that you hardly get
+time to interact with you seniors besides the stand up calls.
+It taught me a lot about independent working and figuring out most
+of the things on my own.
+
+
+https://meet.google.com/xss-cwsy-kiw
+
+
+
+
+
+
+
+
+
+
+Books (book_id, title, author_id)
+Authors (author_id, name)
+Checkouts (checkout_id, book_id, patron_id, checkout_date)
+Patrons (patron_id, name)
+Write a SQL query to retrieve the names of authors who have books checked out by more than one patron.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

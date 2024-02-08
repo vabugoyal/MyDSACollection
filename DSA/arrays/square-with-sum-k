@@ -1,0 +1,10 @@
+https://www.geeksforgeeks.org/media-net-interview-experience-2021/
+
+Two Pointers:
+use two pointers l and r
+iterate over the columns using these two pointers
+two pointers is valid because
+if in a[][l ... r] does not contain a square with sum >= k
+then a[][l1 ... r1] will also not contain a square with sum >= k
+
+// go to every column then binary search over the size of the square

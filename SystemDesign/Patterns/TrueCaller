@@ -1,0 +1,17 @@
+Use Cases
+ - user registration
+ - add contacts
+ - import contacts
+ - block contacts
+ - report spam
+ - unblock numbers
+ - should be notified when suspected junk caller
+ - identify called when call comes
+ - upgrade to premium plans
+ - search for contacts by name and number
+ - should be able to add business
+ - post registration and addition of contacts registered with global directory
+ - users should be able to search from global directory
+
+
+ 

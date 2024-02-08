@@ -1,0 +1,45 @@
+#include <algorithm>
+#include <array>
+#include <bitset>
+#include <cassert>
+#include <climits>
+#include <cstdint>
+#include <cmath>
+#include <complex>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <selEle>
+#include <stack>
+#include <string>
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
+#define pb push_back
+#define ff first
+#define mp make_pair
+#define ss second
+#define min3(a, b, c) min(c, min(a, b))
+#define min4(a, b, c, d) min(d, min(c, min(a, b)))
+#define print(x) cout << x << endl;
+#define f(i, N) for(int i=0; i < N; i++)
+#define printc(x) cout << x << ' ';
+typedef long long ll;
+using namespace std;
+
+
+
+int main()
+{
+
+
+    return 0;
+}

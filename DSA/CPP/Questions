@@ -564,6 +564,14 @@ it a call-back function.
 
 
 
+Difference between a library and a module
+
+Library: collection of related functionality (you know how it would have been
+        implement but you don't want to implement it yourself, rather you
+        want to use someone else code)
+Framework: inversion of control
+Module: abstract interface (you don't need to know how it is implemented)
+
 
 
 

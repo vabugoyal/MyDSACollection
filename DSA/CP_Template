@@ -1,0 +1,155 @@
+// Vaibhav Goyal
+#include <bits/stdc++.h>
+using namespace std;
+
+// ---------------------------------Policy Based DataStructures----------------------
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+
+//defining template when all elements are distinct
+template <class T> using oset = tree<T, null_type, less<T>, rb_tree_tag,tree_order_statistics_node_update>;
+//defining template when duplicate elements are also used
+template <class T> using omulset = tree<T, null_type, less_equal<T>, rb_tree_tag,tree_order_statistics_node_update>;
+
+//  .find_by_order(x) : index of the x element in the set starting from 0
+//  .order_of_key(x)  : number of elements strictly smaller than x in the set
+// ------------------------------------------------------------------------------------
+
+typedef long long ll;
+
+// shortforms
+#define mt                      make_tuple
+#define eb                      emplace_back
+#define pb                      push_back
+#define ff                      first
+#define ss                      second
+#define pr(x)                   cout << (x) << '\n';
+#define prc(x)                  cout << (x) << ' ';
+#define br                      pr("");
+#define all(v)                  v.begin(), v.end()
+#define int                     long long
+#define f(i, N)                 for(int i=0; i < N; i++)
+#define F(i, N)                 for(int i=1; i <= N; i++)
+#define rep(i, begin, end)      for (__typeof(end) i = (begin) - ((begin) > (end)); i != (end) - ((begin) > (end)); i += 1 - 2 * ((begin) > (end)))
+#define sortv(v)                sort(v.begin(), v.end());
+#define read(v)                 for(auto &X_: v) cin >> X_;
+#define sz(v)                   (ll)(v.size())
+#define uniq(A)                 sort(A.begin(),A.end());A.erase(unique(A.begin(),A.end()),A.end());
+
+// Bitwise Operators
+
+/*
+ * Adding lsb to a number
+ * x = (x | (x - 1)) + 1
+ */
+#define check(i, n)             (n & (1LL << i))            // ith bit is set in n
+#define ones(x)                 __builtin_popcountll(x)     // n is unsigned long long
+#define lsb(n)                  __builtin_ffsll(n) - 1      // n is unsigned long long
+#define tralingzeroes(n)        __builtin_ctzll(n)          // n is unsigned long long
+#define leadingzeroes(n)        __builtin_clzll(n)          // n is unsigned long long
+#define lsbVal(n)               (n & ~(n - 1))
+
+#define gcd(a, b)               __gcd(a, b)
+#define lcm(a, b)               a * b / __gcd(a, b)
+
+
+// arrays
+using vl = vector<int>;
+using vvl = vector<vector<int>>;
+using pl = pair<int, int>;
+using vpl = vector<pl>;
+using vvpl = vector<vector<pl>>;
+
+
+// printers
+#define pr2(x1, x2) prc(x1)pr(x2)
+#define pr3(x1, x2, x3) prc(x1)prc(x2)pr(x3)
+#define pr4(x1, x2, x3, x4) prc(x1)prc(x2)prc(x3)pr(x4)
+#define show(A) for (auto &i: A) cout << i << " "; cout << '\n';
+#define show_(A, n) f(i, n) { prc(A[i]) } br
+#ifndef ONLINE_JUDGE
+#include "myprettyprint.hpp"
+#else
+#define dbg(...)
+#endif
+#define addSelf(a, b)       a = (((a % mod) + (b % mod) + mod) % mod)
+#define add(a, b)           (((a % mod) + (b % mod) + mod) % mod)
+#define subSelf(a, b)       a = (((a % mod) - (b % mod) + mod) % mod)
+#define sub(a, b)           (((a % mod) - (b % mod) + mod) % mod)
+#define mul(a, b)           (((a % mod) * (b % mod) + mod) % mod)
+#define mulSelf(a, b)       a = (((a % mod) * (b % mod) + mod) % mod)
+
+// CONSTANTS
+const double eps = 1e-9;
+const int inf = 1e18;
+const bool POSSIBLE = true;
+const bool NOT_POSSIBLE = false;
+const vpl movements = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+int mod = 1e9 + 7;
+const int bits = 31;
+const int mxn =  2 * 100007;
+
+ll mpow(ll base, ll exp){
+    ll res = 1;
+    while(exp > 0){
+        if(exp&1) res = (res*base)%mod;
+        base = (base*base) % mod;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int ceilDiv(int a, int b) {
+    return (a + b - 1) / b;
+}
+
+
+
+
+struct Solution {
+
+    // variables
+    void solve() {
+
+
+
+
+
+
+
+    }
+};
+
+
+
+
+
+
+int32_t main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+#ifndef ONLINE_JUDGE
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
+
+
+//    Functions Called
+//    seive();
+//    factors_seive();
+//    calc_fact();
+//    precalc();
+
+    int tc = 1;
+
+    cin >> tc;
+
+    for (int t = 1; t <= tc; t++) {
+        Solution solution;
+        solution.solve();
+    }
+    return 0;
+}
+
