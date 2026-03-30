@@ -48,6 +48,26 @@ Compiler and assembly:
 
 
 
+#!/bin/bash
+
+# Preprocessing
+g++ -E main.cpp -o main.i
+g++ -E functions.cpp -o functions.i
+
+# Compilation
+g++ -S main.i -o main.s
+g++ -S functions.i -o functions.s
+
+# Assembly
+g++ -c main.s -o main.o
+g++ -c functions.s -o functions.o
+
+# Linking
+g++ main.o functions.o -o main
+
+echo "Compilation stages completed successfully."
+
+
 
 
 
@@ -411,7 +431,7 @@ Diamond Problem in c++
 
 B is inheriting from A
 C is inheriting from A
-D is inheriting from D
+D is inheriting from A, B
 
 so, the variables which were in A class will be
 initialized twice through B and C
@@ -540,7 +560,7 @@ a = b = c = d
 
 Virtual Destructor
 When we delete a child class object using a pointer of
-parent class then we have to define the constructor of
+parent class then we have to define the destructor of
 the base class as virtual otherwise the destructor
 of virtual class will not be called and it may lead to memory
 leak.
