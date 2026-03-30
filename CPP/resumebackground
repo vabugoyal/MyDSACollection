@@ -1,0 +1,303 @@
+Proj Drishti
+- Determines which feed is authoritative is of which spn
+- What did the UTD Team do?
+    - Analyzed universe files from each trading system
+    - Identified ~100-200 conflicts
+    - Consulted with trading desks to understand their priorities
+
+  Users had to know:
+  1. Which feeds have data for this SPN?
+  2. Which feed is "better" (IDC vs UTP vs BBG)?
+  3. What GMC does this SPN use?
+  4. What's the exact quotesid format?
+
+  1. Manual feed selection - Users had to research which feed to use
+  2. Inconsistent choices - Different users picked different feeds for same SPN
+  3. Ad-hoc knowledge - Required tribal knowledge about feed quality
+  4. Strategy-locked - Had to use a strategy even if you weren't trading
+  5. Options complexity - For CME/ICE options, had to use utdfind first, then map SPNs to quotesids manually
+
+
+  Main Users (from Confluence):
+
+  | User Type          | Use Case                           | Why NOT Strategy Univ                             |
+  |--------------------|------------------------------------|---------------------------------------------------|
+  | Quants/Researchers | Historical backtests, research     | Need data for SPNs NOT in trading universe        |
+  | Options Team       | CME/ICE options analysis           | Options often not in any strategy univ            |
+  | Energy Team        | Energy futures/options             | Need all energy products, not just traded ones    |
+  | FUT Team           | Volume analysis across all futures | Need comprehensive coverage, not just futtrd univ |
+  | ComplyTech         | Compliance reporting               | Need to check ALL instruments with data           |
+  | DesTerm            | Intraday data platform             | Serve data to all users, not specific strategies  |
+  | UTD Devs           | Extended universe generation       | Build research universes beyond trading univs     |
+
+
+    Why NOT Strategy Universes?
+
+    Problem 1: Coverage
+    - Strategy univs: Only ~10,000-50,000 SPNs per strategy (actively traded)
+    - Consolidated univ: ~500,000+ SPNs (everything with UTD data)
+
+    Problem 2: You're Not Trading
+    # BEFORE consolidated univ:
+    $ utdcat --spn 99999999 --date 20250422
+    ERROR: SPN not found in any strategy universe
+
+    # You had to find which strategy trades it, or know the quotesid
+    $ utdcat --strategy s1trd --spn 99999999  # Fails if s1trd doesn't trade it
+    $ utdcat --strategy peeqtrd --spn 99999999  # Fails if peeqtrd doesn't trade it
+    # ... try all strategies manually!
+
+    # AFTER consolidated univ:
+    $ utdcat --spn 99999999 --date 20250422
+    # Works! Auto-selects best feed even if no strategy trades it
+
+    Problem 3: Inconsistency
+    - s1trd uses IDC for Tokyo
+    - peeqtrd uses BBG for Tokyo
+    - Which one should researchers use? → Consolidated univ provides ONE answer
+
+  Question 6: What's the Difference Between Strategy Univ Data and Consolidated Univ Data?
+
+  Comparison Table:
+
+  | Aspect      | Strategy Universe                                      | Consolidated Universe                                                                       |
+  |-------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------|
+  | Purpose     | Trading system's active securities                     | Research/analytics for ALL securities                                                       |
+  | Coverage    | ~10K-50K SPNs (what strategy trades)                   | ~500K+ SPNs (everything with data)                                                          |
+  | Selection   | Manual (trading desk curates)                          | Automatic (all SPNs with UTD data)                                                          |
+  | Feed Choice | Strategy's preference (s1trd→IDC)                      | Priority system (s1trd > peeqtrd > config)                                                  |
+  | Updates     | When trading desk changes universe                     | Daily (scans all feeds)                                                                     |
+  | Location    | /u/s1trd/univ/20250422.univ                            | /data/utd/consolidated_univ/20250422/                                                       |
+  | Columns     | spn, quotesid, primary_exchange, listing_exchange, ... | spn, quoteSid, directFeedQuoteSid, allQuotesids, gmcQuotesids, optionType, strikePrice, ... |
+  | Use Case    | GUAS Ordersys (order routing, risk)                    | UTD APIs (research queries)                                                                 |
+  | Users       | Trading systems (GUAS Head, Gate)                      | Researchers, Quants, Analytics                                                              |
+
+  Key differences:
+  1. Consolidated univ has SPN 99999999 (London stock) even though NO strategy trades it - because UTD has data for it
+  2. Consolidated univ shows ALL quotesids (allQuotesids column) - strategy univ only shows ONE
+  3. Consolidated univ picks UTP for Microsoft (better direct feed) - s1trd uses IDC (historical preference)
+
+
+  Question 7: Why Are Some SPNs in Consolidated Univ But NOT in Strategy Univs?
+
+  Answer: Because UTD has data for them, but NO trading desk actively trades them!
+
+
+  UTD's mission: Provide historical market data for research
+  → Even if we're not trading it, if we have the data, researchers should be able to query it!
+
+
+  | Question                                 | Answer                                                                    |
+  |------------------------------------------|---------------------------------------------------------------------------|
+  | Why created?                             | Eliminate manual feed/quotesid selection - 95% automation                 |
+  | Quotesid generation?                     | Constructed from feed metadata (FEED/GMC/TYPE/ID) at ingestion            |
+  | Can feed have multiple GMCs?             | YES! Consolidated feeds (IDC, BBG) have 100+ GMCs                         |
+  | How are strategy univ quotesids created? | Manually by trading desk when adding instruments                          |
+  | Who uses consolidated univ?              | Researchers, Quants, Options/Energy/FUT teams - anyone doing analytics    |
+  | Strategy vs Consolidated univ?           | Strategy=Trading (10K-50K SPNs), Consolidated=Data (500K+ SPNs)           |
+  | Why extra SPNs in consolidated?          | Historical data, retroactive SPNs, cross-listings, comprehensive coverage |
+
+
+
+
+What was the earlier 9 step process and why was it so cumbersome?
+
+      Why 9 Steps?
+
+      The OLD process was designed for periodic batch updates (weekly/monthly), not daily refreshes:
+      1. Steps 1-2: Generate cache for new feed data
+      2. Step 3: Copy production to scratch (can't modify in-place)
+      3. Steps 4-5: Delete old feed data (prepare for merge)
+      4. Steps 6-7: Merge quotesidCache and unresolvedQuotesidCache
+      5. Step 8: Merge securityCache + dedup (most expensive)
+      6. Step 9: Atomic move to production
+
+      Why So Slow?
+
+      - Petabyte-scale data: /data/utd/ contains 10+ years × 252 dates/year × 100+ feeds
+      - NFS latency: Network filesystem amplifies I/O costs
+      - No incremental updates: Must process all dates even if only one changed
+      - Deduplication: Full table scan required to find conflicts
+
+      Why Consolidated Universe is Better?
+
+      - Per-date granularity: Each date is independent, can regenerate any date without affecting others
+      - Immutability: Once generated, directory never changes (no conflicts, no deduplication)
+      - Parallelization: 252 dates × 50 grid workers = ~5 dates/worker (2-4 hours total)
+      - Rich metadata: quoteSid, directFeedQuoteSid, gmcQuotesids, allQuotesids, options fields
+      - Automated feed selection: 95% of SPNs have unambiguous feed selection, no manual intervention
+
+
+
+
+Interview-Ready Pitch: Multi-Day to Hours Optimization
+
+  30-Second Elevator Pitch
+
+  "We replaced a sequential 9-step security cache refresh that took 1-2 days with a per-date metadata architecture that runs in 2-4 hours. The old system used global state—a
+   single cache tracking quotesid lifecycles across all dates—requiring full rebuilds for any update. We redesigned it as immutable per-date directories that can be
+  generated independently and in parallel. This enabled 50 grid workers to process 252 trading days concurrently, reducing runtime by 10-20x while automating 95% of feed
+  selection decisions."
+
+  ---
+  2-Minute Detailed Response
+
+  Setup the Problem:
+  "The original system was designed for periodic batch updates, not daily refreshes. It maintained a global security cache with first_seen_date and last_seen_date columns to
+   track when each quotesid was available. The refresh process had 9 sequential steps:"
+
+  1. Scan all historical dates for a feed to extract quotesids
+  2. Compute first/last seen dates and lookup metadata from database
+  3. Copy production cache to scratch directory (~500GB)
+  4. Delete old feed data from copied tables
+  5. Merge new data with cleaned tables
+  6. Deduplicate conflicts
+  7. Move merged tables back to production
+
+  "This took 1-2 days for several reasons:"
+
+  Key Bottlenecks:
+  - Sequential dependencies: Step N+1 couldn't start until Step N completed
+  - Global state: Any feed update required scanning entire history (6+ years of data) to recompute first/last seen dates
+  - Heavy I/O: Copying and merging 500GB tables multiple times over NFS
+  - NFS locking: Only one feed could refresh at a time to prevent race conditions
+  - No incrementality: Even if only one date changed, we'd rebuild everything
+
+  The Solution:
+  "We redesigned the architecture around per-date immutability:"
+
+  1. Per-date directories: /data/utd/consolidated_univ/{date}/ instead of global cache
+  2. Independence: Each date is self-contained—no dependencies on other dates
+  3. Parallelization: 252 trading days × 50 grid workers = ~5 dates per worker
+  4. Write-once: Generate directly in final location, no copy/merge/move
+  5. Automated feed selection: 4-rule hierarchy + 20 config overrides = 95% automation
+
+  Results:
+  - Runtime: 1-2 days → 2-4 hours (10-20x faster)
+  - Scalability: 10+ trading desks can self-serve without understanding feed internals
+  - Robustness: Failures are isolated—one date failing doesn't block others
+  - No locks needed: Immutable writes eliminate race conditions
+
+  ---
+  Key Metrics to Memorize
+
+  OLD System:
+  - ⏱️ Runtime: 26-50 hours (1-2 days)
+  - 🔄 Architecture: Global cache, sequential 9-step process
+  - 🔒 Concurrency: NFS lock, one feed at a time
+  - 📊 Scope: Full historical scan (6+ years) for any update
+  - ⚠️ Fragility: Any step failure requires full restart
+
+  NEW System:
+  - ⏱️ Runtime: 2-4 hours
+  - 🔄 Architecture: Per-date directories, 5-step pipeline
+  - 🔒 Concurrency: 50 parallel grid workers
+  - 📊 Scope: Independent date processing, no historical scans
+  - ✅ Robustness: Isolated failures, checkpointed recovery
+
+  Business Impact:
+  - 95% feed selection automated
+  - 10+ trading teams enabled
+  - Petabyte-scale data access
+  - Self-serve research (no manual intervention)
+
+  ---
+  Follow-Up Questions & Answers
+
+  Q1: "Why couldn't you parallelize the old process?"
+
+  "The old process had global state dependencies. Step 6 merged new quotesidCache data with existing data, requiring knowledge of what quotesids existed across ALL dates to
+  compute first_seen_date and last_seen_date correctly. Additionally, Step 8's deduplication required scanning the entire merged table to find conflicts. With per-date
+  directories, each date is independent—we don't need to know anything about other dates."
+
+  Q2: "What was the biggest technical challenge?"
+
+  "Feed selection automation. With 15+ feeds (IDC, BBG, ICE, CME, EUREX) providing data for the same securities, we needed deterministic rules. We designed a 4-rule
+  hierarchy:"
+  1. Prefer direct exchange feeds (ICE, CME) over consolidated feeds (IDC, BBG) for lower latency
+  2. Use country-aware selection (e.g., ICE for US securities, BBG for Canadian)
+  3. Resolve conflicts using trading desk priorities (s1trd > peeqtrd > jpeqtrd)
+  4. Override with 20 explicit config rules for edge cases
+
+  "This automated 95% of decisions while allowing manual overrides for the remaining 5%."
+
+  Q3: "How did you validate correctness?"
+
+  "We ran parallel production for 3 months:"
+  1. Generated consolidated universe for date D
+  2. Compared with existing security cache quotesids for same SPNs
+  3. For discrepancies, investigated which feed was correct
+  4. Used findings to refine the 20 config override rules
+  5. Final validation: All 10+ trading desks reviewed their SPNs
+
+  "After cutover, we monitored data quality alerts—quotesids with missing data despite last_seen_date indicating presence."
+
+  Q4: "What would you do differently?"
+
+  "With hindsight, I'd parallelize earlier. We initially generated per-date sequentially to validate correctness before parallelizing. In retrospect, we could've started
+  with parallelization and used spot-checks for validation, cutting development time by 2-3 months. Also, I'd add more instrumentation upfront—we added logging/metrics
+  reactively when debugging edge cases."
+
+  Q5: "How does this scale to more data?"
+
+  "Linearly. Each date is independent, so adding more dates just means more grid workers. We're currently at 252 dates × 50 workers = ~5 dates/worker. If we needed 10 years
+  of history (2,520 dates), we'd use 500 workers for the same 2-4 hour runtime. The bottleneck is per-date processing (database lookups for options data), which we optimized
+   with intermediate caching—252x reduction in API calls."
+
+  ---
+  Technical Deep-Dive (If Asked)
+
+  OLD Architecture:
+
+  Global Cache (/data/utd/security_cache/):
+  ├── quotesidCache (quoteSid → first_seen, last_seen)
+  ├── securityCache (spn → quoteSid, first_seen, last_seen)
+  └── unresolvedQuotesidCache (orphaned quotesids)
+
+  Refresh Process:
+  1. Scan feeds: IDC, BBG, ICE, CME, EUREX, RT (6+ years × 252 dates/year)
+  2. Compute: first_seen = MIN(dates), last_seen = MAX(dates)
+  3. Copy: 500GB production → scratch (6-12 hours I/O)
+  4. Delete: Old feed rows (~2 hours)
+  5. Merge: scratch + new data (~4 hours)
+  6. Dedup: Scan for conflicts (~6 hours)
+  7. Move: scratch → production (~1 hour)
+
+  Problem: Feed switch (BBG → IDC) requires full rebuild to update last_seen_date
+
+  NEW Architecture:
+
+  Per-Date Directories (/data/utd/consolidated_univ/{date}/):
+  ├── consolidated_univ (spn → quoteSid, directFeedQuoteSid, gmcQuotesids, allQuotesids)
+  └── [immutable after generation]
+
+  Refresh Process (per date, parallelized):
+  1. QuotesidProcessor: Scan all feeds for date D, build spn → {gmc → quotesids}
+  2. UnivQuotesidMapProcessor: Load strategy universes + 20 config rules
+  3. OptionLoaderManager: Lookup options metadata (with intermediate cache)
+  4. Feed Selection: Apply 4-rule hierarchy for each SPN
+  5. SRQ Writer: Write consolidated_univ table
+
+  Parallelization: 252 dates × 50 workers = 2-4 hours total
+
+  ---
+  One-Liner Summary
+
+  "We eliminated global state dependencies and heavy I/O by redesigning the architecture for per-date immutability, enabling 50x parallelization and 10-20x faster
+  refreshes."
+
+  ---
+  Confidence Boosters
+
+  - You designed a distributed system that scales linearly
+  - You eliminated race conditions through immutability (functional programming principle)
+  - You automated decision-making with a rule-based system (95% coverage)
+  - You optimized I/O by removing unnecessary copies and merges
+  - You enabled 10+ teams to self-serve (force multiplier)
+
+  This demonstrates systems thinking, scalability, and business impact—exactly what HFT firms look for.
+
+
+
+
+

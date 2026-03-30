@@ -1,0 +1,25 @@
+Calculating factorial 
+    // Recursive template for N >= 0
+    template<int N, typename = std::enable_if_t<(N >= 0)>>
+    struct Factorial {
+        static constexpr int value = N * Factorial<N-1>::value;
+    };
+    
+    // Base case specialization
+    template<>
+    struct Factorial<0> {
+        static constexpr int value = 1;
+    };
+    
+    
+CRTP (Curiously Recurring Template Pattern)?
+
+template <template<typename> class Container>
+class Foo {...};
+
+TODO:
+    Brush up basic templates and STL templates
+    Be ready for compile-time programming questions
+    Know specialization, SFINAE, variadic templates
+    Be able to explain performance implications (no runtime overhead, inlining)
+    Practice small code snippets rather than just theory    

@@ -1,0 +1,104 @@
+NUMA (Non-Uniform Memory Access) – Quick Notes
+
+- Definition:
+    - NUMA is a computer memory design used in multiprocessor systems.
+    - In NUMA, a processor (CPU) accesses its local memory faster than non-local memory (memory local to another CPU).
+
+- Structure:
+    - System is divided into NUMA nodes.
+    - Each NUMA node contains:
+        - One or more CPU cores
+        - Local memory
+        - Interconnects to other NUMA nodes
+
+- Memory:
+    - Each NUMA node has its own physically attached memory.
+    - Global memory is still accessible, but access latency varies:
+        - Local memory: low latency
+        - Remote memory (another NUMA node): higher latency
+
+- Reason for existence:
+    - Improves scalability of multiprocessor systems.
+    - Reduces memory access bottlenecks compared to uniform shared memory (UMA).
+    - Helps high-performance applications like HFT reduce latency by using local memory.
+
+- Key points for HFT/Performance:
+    - Place frequently used data on the same NUMA node as the CPU processing it.
+    - Avoid cross-node memory access in latency-sensitive applications.
+    - Tools like `numactl` can control memory/CPU allocation per NUMA node.
+
+- Diagram (conceptual):
+
+    [CPU0] -- Local Memory0
+        \
+         \
+      Interconnect
+         \
+          [CPU1] -- Local Memory1
+
+- Summary:
+    - NUMA = multiple CPU+memory clusters (nodes)
+    - Local memory is faster, remote memory is slower
+    - Optimizing for NUMA reduces latency
+
+
+
+Memory Management & Access – UMA vs NUMA
+
+    - Key Components:
+
+        - MMU (Memory Management Unit):
+            - Translates virtual addresses to physical addresses.
+            - Works with page tables and manages memory access permissions.
+
+        - TLB (Translation Lookaside Buffer):
+            - Cache inside the MMU for recent virtual->physical translations.
+            - Speeds up address translation, reduces page table access latency.
+
+        - Memory Controller:
+            - Interfaces CPU with memory.
+            - Handles read/write requests, refresh cycles, and scheduling.
+
+        - TLP (Thread-Level Parallelism) [Optional]:
+            - Running multiple threads in parallel on CPU cores.
+            - Utilization depends on memory access efficiency (local vs remote).
+
+    - Uniform Memory Access (UMA) Systems:
+        - All CPUs share a single global memory.
+        - Memory access latency is uniform for all CPUs.
+        - Interaction:
+            - MMU + TLB handle virtual->physical translation for all CPUs.
+            - Central memory controller handles all read/write requests.
+            - High TLP can cause contention at the memory controller.
+        - Diagram (conceptual):
+
+            [CPU0] \
+            [CPU1]  --> [MMU+TLB] --> [Memory Controller] --> [Global Memory]
+            [CPU2] /
+
+    - Non-Uniform Memory Access (NUMA) Systems:
+        - Memory is physically distributed across NUMA nodes.
+        - Access latency depends on local vs remote memory.
+        - Interaction:
+            - Each NUMA node has its own MMU + TLB and Memory Controller.
+            - MMU + TLB handle translations for local memory.
+            - Memory Controller manages local memory access.
+            - Interconnect is used for remote memory access.
+            - TLP should be optimized to use local memory to reduce latency.
+        - Diagram (conceptual):
+
+            [CPU0] -- [MMU+TLB] -- [Memory Controller] --> Local Memory0
+                \
+                 \
+              Interconnect
+                 \
+                  [CPU1] -- [MMU+TLB] -- [Memory Controller] --> Local Memory1
+
+    - Key Differences:
+        - UMA:
+            - Single memory controller, same latency for all CPUs.
+            - Simple architecture, can bottleneck at high TLP.
+        - NUMA:
+            - Distributed memory controllers, latency varies.
+            - Optimizing for local memory access improves performance.
+
