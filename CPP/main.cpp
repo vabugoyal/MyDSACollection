@@ -5,18 +5,17 @@
 #include <condition_variable>
 using namespace std;
 
-// implementing a spin lock using atomic flag 
-atomic_flag spinLock = ATOMIC_FLAG_INIT;
 
-void lock() {
-    while(!spinLock.test_and_set(memory_order_acquire)) {
-        // busy wait
-    }
-}
 
-void unlock() {
-    spinLock.clear(memory_order_release);
-}
+
+
+
+
+
+
+
+
+
 
 int main() {
 

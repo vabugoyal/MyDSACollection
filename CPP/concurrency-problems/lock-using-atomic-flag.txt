@@ -33,3 +33,114 @@ void lock() {
 void unlock() {
     spinLock.clear(memory_order_release);
 }
+
+
+class TicketLock {
+    public:
+    atomic<int> next_ticket;
+    atomic<int> now_serving;
+
+    TicketLock() : next_ticket(0), now_serving(0) {}
+
+
+    void lock() {
+        int my_ticket = next_ticket.fetch_add(1, memory_order_relaxed);
+        while (now_serving.load(memory_order_acquire) != my_ticket) {
+            // busy wait
+        }
+    }
+
+    void unlock() {
+        now_serving.fetch_add(1, memory_order_release);
+    }
+};
+
+Reader Priority
+
+class ReaderWriterLock {
+    public:
+        int readers;
+        bool active_writer;
+        mutex mu;
+        condition_variable cvR, cvW;
+
+    ReaderWriterLock() {
+        readers = 0;
+        active_writer = false;
+    }
+
+    void readerLock() {
+        unique_lock<mutex> ul(mu);
+        cvR.wait(ul, [&](){ return !active_writer;});
+        readers++;
+    }
+
+    void writerLock() {
+        unique_lock<mutex> ul(mu); // take the lock and check the condn
+        cvW.wait(ul, [&](){ return readers == 0 && !active_writer;});
+        active_writer = true;
+    }
+
+    void readerUnlock() {
+        unique_lock<mutex> ul(mu);
+        readers--;
+        if (readers == 0) cvW.notify_one();
+    }
+
+    void writeUnlock() {
+        unique_lock<mutex> ul(mu);
+        active_writer = false;
+        cvR.notify_all();
+        cvW.notify_one();
+    }
+};
+
+
+Writer Priority
+
+class ReaderWriterLock {
+    public:
+        int readers, writers_waiting;
+        bool active_writer;
+        mutex mu;
+        condition_variable cvR, cvW;
+
+    ReaderWriterLock() {
+        readers = 0;
+        writers_waiting = 0;
+        active_writer = false;
+    }
+
+    void readerLock() {
+        unique_lock<mutex> ul(mu);
+        cvR.wait(ul, [&](){ return !active_writer && writers_waiting == 0;});
+        readers++;
+    }
+
+    void writerLock() {
+        unique_lock<mutex> ul(mu); // take the lock and check the condn
+        writers_waiting++;
+        cvW.wait(ul, [&](){ return readers == 0 && !active_writer;});
+        
+        active_writer = true;
+        writers_waiting--;
+    }
+
+    void readerUnlock() {
+        unique_lock<mutex> ul(mu);
+        readers--;
+        if (readers == 0) {
+            if (writers_waiting)
+                cvW.notify_one();
+            else
+                cvR.notify_all();
+        }
+    }
+
+    void writeUnlock() {
+        unique_lock<mutex> ul(mu);
+        active_writer = false;
+        if (writers_waiting) cvW.notify_one();
+        else cvR.notify_all();
+    }
+};
