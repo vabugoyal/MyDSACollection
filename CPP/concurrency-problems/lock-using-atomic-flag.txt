@@ -1,0 +1,35 @@
+// implementing a spin lock using atomic flag 
+atomic<bool> flag(false);
+
+
+void lock() {
+    bool expected = false;
+    while (!flag.compare_exchange_strong(
+            expected, 
+            true,
+            memory_order_acquire,
+            memory_order_relaxed)
+        )
+    {
+        expected = false; // reset expected for the next iteration
+    }
+}
+
+
+void unlock() {
+    flag.store(false, memory_order_release);
+}
+
+
+
+atomic_flag spinLock = ATOMIC_FLAG_INIT;
+
+void lock() {
+    while(!spinLock.test_and_set(memory_order_acquire)) {
+        // busy wait
+    }
+}
+
+void unlock() {
+    spinLock.clear(memory_order_release);
+}

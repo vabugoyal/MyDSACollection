@@ -2,51 +2,30 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 using namespace std;
 
-const int N = 10;
-atomic<int> turn(0); // Shared variable to indicate which thread's turn it is
-int cnt = 0; // Shared counter variable
+// implementing a spin lock using atomic flag 
+atomic_flag spinLock = ATOMIC_FLAG_INIT;
 
-
-void func(int num) {
-    while(true) {
-        if (turn == num) {
-            if (cnt == N) {
-                int next_turn = (num + 1) % 3; // Calculate the next thread's turn
-                turn = next_turn; 
-                break; 
-            }
-            
-            cout << char('A' + num);;
-            
-            if (num == 2) {
-                cnt++; 
-            }
-            turn = (turn + 1) % 3; 
-        }
-        else {
-            this_thread::yield(); 
-        }
+void lock() {
+    while(!spinLock.test_and_set(memory_order_acquire)) {
+        // busy wait
     }
-    
+}
+
+void unlock() {
+    spinLock.clear(memory_order_release);
 }
 
 int main() {
 
     auto start = chrono::high_resolution_clock::now();
 
-    
-    thread t1(func, 0);
-    thread t2(func, 1);
-    thread t3(func, 2);
 
-    t1.join();
-    t2.join();
-    t3.join();
+
 
     auto end = chrono::high_resolution_clock::now();
-
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     cout << "Execution time: " << duration.count() << " ms" << endl;
 

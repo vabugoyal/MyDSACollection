@@ -111,3 +111,77 @@ int main() {
 
 
 
+with condition variable 
+
+#include <iostream>
+#include <thread>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+using namespace std;
+
+const int N = 10;
+int turn(0); // Shared variable to indicate which thread's turn it is
+int cnt = 0; // Shared counter variable
+condition_variable cv; // Condition variable for synchronization
+mutex lck;
+
+
+void func(int num) {
+    while(true) {
+        unique_lock<mutex> lk(lck);
+        cv.wait(lk, [&]() {return turn == num || cnt == N;}); // Wait until it's this thread's turn
+        
+        if (cnt == N) {
+            lk.unlock();
+            cv.notify_one(); // Notify all waiting threads
+            return;
+        }    
+
+        cout << char('A' + num);;
+        
+        if (num == 2) {
+            cnt++; 
+        }
+        turn = (turn + 1) % 3; 
+        cv.notify_all(); // Notify all waiting threads        
+    }
+    
+}
+
+int main() {
+
+    auto start = chrono::high_resolution_clock::now();
+
+    
+    thread t1(func, 0);
+    thread t2(func, 1);
+    thread t3(func, 2);
+
+    t1.join();
+    t2.join();
+    t3.join();
+
+    auto end = chrono::high_resolution_clock::now();
+
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    cout << "Execution time: " << duration.count() << " ms" << endl;
+
+    return 0;
+}
+
+
+
+// condition variables 
+// different types of locks 
+// deadlock scenarios 
+// semaphores 
+// object pool threading 
+// lock free programming
+    // spsc queue
+    // mpmc queue
+    // spmc queue
+    // mpsc queue
+
+
+
