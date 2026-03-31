@@ -14,3 +14,6 @@ $(TARGET): $(OBJ)
 
 clean:
 	rm -f $(OBJ) $(TARGET)
+
+run: all
+	./$(TARGET)

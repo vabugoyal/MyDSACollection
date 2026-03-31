@@ -1,3 +1,45 @@
+printing number alternatively from two threads 
+
+#include <iostream>
+#include <thread>
+#include <atomic>
+using namespace std;
+
+atomic<int> turn = 0;
+atomic<int> cnt = 0;
+
+void func(int num) {
+    while(true) {
+        if (turn == num) {
+            if (cnt >= 10) {
+                turn = 1 - num; // Switch to the other thread before exiting
+                break;
+            }; // Stop after counting to 10
+            cnt++;
+            cout << "Thread " << num << ": " << cnt << endl;
+            turn = 1 - num; // Switch to the other thread
+        } 
+    }
+    
+}
+
+int main() {
+
+    thread t1(func, 0);
+    thread t2(func, 1);
+
+    t1.join();
+    t2.join();
+
+    
+
+    return 0;
+}
+
+
+
+printing abc 
+
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -65,4 +107,7 @@ int main() {
     // mpmc queue
     // spmc queue
     // mpsc queue
+
+
+
 
