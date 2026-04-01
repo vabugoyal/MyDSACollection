@@ -335,33 +335,34 @@ unique_ptr<Json> createJson(int &i, const string &s) {
     }
 }
 
-// void printJson(const Json &json) {
-//     visit(overloaded{
-//         [](string_view s) {
-//             cout << "\"" << s << "\"";
-//         },
-//         [](const Json::JsonList &list) {
-//             cout << "[";
-//             for (int i = 0; i < (int)list.size(); i++) {
-//                 if (i > 0) cout << ",";
-//                 printJson(*list[i]);
-//             }
-//             cout << "]";
-//         },
-//         [](const Json::JsonObject &obj) {
-//             cout << "{";
-//             bool first = true;
-//             for (auto &kv : obj) {
-//                 if (!first) cout << ",";
-//                 first = false;
+void printJson(const Json &json) {
+    visit(overloaded{
+        [](string_view s) {
+            cout << "\"" << s << "\"";
+        },
+        [](const Json::JsonList &list) {
+            cout << "[";
+            for (int i = 0; i < (int)list.size(); i++) {
+                if (i > 0) cout << ",";
+                printJson(*list[i]);
+            }
+            cout << "]";
+        },
+        [](const Json::JsonObject &obj) {
+            cout << "{";
+            bool first = true;
+            for (auto &kv : obj) {
+                if (!first) cout << ",";
+                first = false;
 
-//                 cout << "\"" << kv.first << "\":";
-//                 printJson(*kv.second);
-//             }
-//             cout << "}";
-//         }
-//     }, json.value);
-// }
+                cout << "\"" << kv.first << "\":";
+                printJson(*kv.second);
+            }
+            cout << "}";
+        }
+    }, json.value);
+}
+
 
 
 
@@ -396,6 +397,28 @@ void printJson(const Json &json) {
 
     }, json.value);
 }
+
+This boils down to something like 
+
+struct Visitor {
+    template<typename U>
+    void operator()(U& arg) const {
+        using T = std::decay_t<U>;
+
+        if constexpr (...) {
+            // ...
+        }
+    }
+};
+
+
+
+
+
+
+
+
+
 
 int main() {
     string json1 = R"({"name":"Alice","age":"25","hobbies":["reading","music"]})";

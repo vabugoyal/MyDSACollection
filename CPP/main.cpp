@@ -142,56 +142,23 @@ unique_ptr<Json> createJson(int &i, const string &s) {
     }
 }
 
-// void printJson(const Json &json) {
-//     visit(overloaded{
-//         [](string_view s) {
-//             cout << "\"" << s << "\"";
-//         },
-//         [](const Json::JsonList &list) {
-//             cout << "[";
-//             for (int i = 0; i < (int)list.size(); i++) {
-//                 if (i > 0) cout << ",";
-//                 printJson(*list[i]);
-//             }
-//             cout << "]";
-//         },
-//         [](const Json::JsonObject &obj) {
-//             cout << "{";
-//             bool first = true;
-//             for (auto &kv : obj) {
-//                 if (!first) cout << ",";
-//                 first = false;
-
-//                 cout << "\"" << kv.first << "\":";
-//                 printJson(*kv.second);
-//             }
-//             cout << "}";
-//         }
-//     }, json.value);
-// }
-
-
-
 void printJson(const Json &json) {
-    std::visit([](auto& arg) {
-
-        using T = std::decay_t<decltype(arg)>;
-
-        if constexpr (std::is_same_v<T, string_view>) {
-            cout << "\"" << arg << "\"";
-        }
-        else if constexpr (std::is_same_v<T, Json::JsonList>) {
+    visit(overloaded{
+        [](string_view s) {
+            cout << "\"" << s << "\"";
+        },
+        [](const Json::JsonList &list) {
             cout << "[";
-            for (int i = 0; i < (int)arg.size(); i++) {
+            for (int i = 0; i < (int)list.size(); i++) {
                 if (i > 0) cout << ",";
-                printJson(*arg[i]);
+                printJson(*list[i]);
             }
             cout << "]";
-        }
-        else if constexpr (std::is_same_v<T, Json::JsonObject>) {
+        },
+        [](const Json::JsonObject &obj) {
             cout << "{";
             bool first = true;
-            for (auto &kv : arg) {
+            for (auto &kv : obj) {
                 if (!first) cout << ",";
                 first = false;
 
@@ -200,9 +167,42 @@ void printJson(const Json &json) {
             }
             cout << "}";
         }
-
     }, json.value);
 }
+
+
+
+// void printJson(const Json &json) {
+//     std::visit([](auto& arg) {
+
+//         using T = std::decay_t<decltype(arg)>;
+
+//         if constexpr (std::is_same_v<T, string_view>) {
+//             cout << "\"" << arg << "\"";
+//         }
+//         else if constexpr (std::is_same_v<T, Json::JsonList>) {
+//             cout << "[";
+//             for (int i = 0; i < (int)arg.size(); i++) {
+//                 if (i > 0) cout << ",";
+//                 printJson(*arg[i]);
+//             }
+//             cout << "]";
+//         }
+//         else if constexpr (std::is_same_v<T, Json::JsonObject>) {
+//             cout << "{";
+//             bool first = true;
+//             for (auto &kv : arg) {
+//                 if (!first) cout << ",";
+//                 first = false;
+
+//                 cout << "\"" << kv.first << "\":";
+//                 printJson(*kv.second);
+//             }
+//             cout << "}";
+//         }
+
+//     }, json.value);
+// }
 
 int main() {
     string json1 = R"({"name":"Alice","age":"25","hobbies":["reading","music"]})";
@@ -219,3 +219,5 @@ int main() {
 
     return 0;
 }
+
+
