@@ -184,3 +184,231 @@ int main() {
 
     return 0;
 }
+
+
+
+Using variants 
+
+
+
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <stdexcept>
+#include <variant>
+#include <cctype>
+
+using namespace std;
+
+// helper for visit
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+class Json {
+public:
+    using JsonObject = unordered_map<string, unique_ptr<Json>>;
+    using JsonList = vector<unique_ptr<Json>>;
+
+    variant<string_view, JsonList, JsonObject> value;
+
+    // constructors
+    Json(string_view s) : value(s) {}
+    Json(JsonList list) : value(std::move(list)) {}
+    Json(JsonObject obj) : value(std::move(obj)) {}
+
+    // add to object
+    void add(string key, unique_ptr<Json> val) {
+        auto &obj = std::get<JsonObject>(value);
+        obj[key] = std::move(val);
+    }
+
+    // add to list
+    void add(unique_ptr<Json> val) {
+        auto &list = std::get<JsonList>(value);
+        list.push_back(std::move(val));
+    }
+};
+
+void skipWhiteSpace(int &i, const string &s) {
+    while (i < (int)s.size() && isspace(s[i])) i++;
+}
+
+string_view readString(int &i, const string &s) {
+    if (i >= (int)s.size() || s[i] != '"')
+        throw runtime_error("Expected '\"'");
+
+    int j = i + 1;
+
+    while (j < (int)s.size() && s[j] != '"') j++;
+
+    if (j >= (int)s.size())
+        throw runtime_error("Unterminated string");
+
+    string_view val(s.data() + i + 1, j - i - 1);
+    i = j + 1;
+
+    return val;
+}
+
+unique_ptr<Json> createJson(int &i, const string &s) {
+    skipWhiteSpace(i, s);
+
+    if (i >= (int)s.size())
+        throw runtime_error("Unexpected end of input");
+
+    // STRING
+    if (s[i] == '"') {
+        return make_unique<Json>(readString(i, s));
+    }
+
+    // LIST
+    else if (s[i] == '[') {
+        i++;
+        Json::JsonList list;
+
+        skipWhiteSpace(i, s);
+
+        while (i < (int)s.size() && s[i] != ']') {
+            list.push_back(createJson(i, s));
+            skipWhiteSpace(i, s);
+
+            if (s[i] == ',') {
+                i++;
+                skipWhiteSpace(i, s);
+            } else if (s[i] != ']') {
+                throw runtime_error("Expected ',' or ']'");
+            }
+        }
+
+        if (i >= (int)s.size() || s[i] != ']')
+            throw runtime_error("Expected ']'");
+
+        i++;
+        return make_unique<Json>(std::move(list));
+    }
+
+    // OBJECT
+    else if (s[i] == '{') {
+        i++;
+        Json::JsonObject obj;
+
+        skipWhiteSpace(i, s);
+
+        while (i < (int)s.size() && s[i] != '}') {
+            string key(readString(i, s));
+
+            skipWhiteSpace(i, s);
+
+            if (s[i] != ':')
+                throw runtime_error("Expected ':'");
+
+            i++;
+            skipWhiteSpace(i, s);
+
+            obj[key] = createJson(i, s);
+
+            skipWhiteSpace(i, s);
+
+            if (s[i] == ',') {
+                i++;
+                skipWhiteSpace(i, s);
+            } else if (s[i] != '}') {
+                throw runtime_error("Expected ',' or '}'");
+            }
+        }
+
+        if (i >= (int)s.size() || s[i] != '}')
+            throw runtime_error("Expected '}'");
+
+        i++;
+        return make_unique<Json>(std::move(obj));
+    }
+
+    else {
+        throw runtime_error("Invalid JSON");
+    }
+}
+
+// void printJson(const Json &json) {
+//     visit(overloaded{
+//         [](string_view s) {
+//             cout << "\"" << s << "\"";
+//         },
+//         [](const Json::JsonList &list) {
+//             cout << "[";
+//             for (int i = 0; i < (int)list.size(); i++) {
+//                 if (i > 0) cout << ",";
+//                 printJson(*list[i]);
+//             }
+//             cout << "]";
+//         },
+//         [](const Json::JsonObject &obj) {
+//             cout << "{";
+//             bool first = true;
+//             for (auto &kv : obj) {
+//                 if (!first) cout << ",";
+//                 first = false;
+
+//                 cout << "\"" << kv.first << "\":";
+//                 printJson(*kv.second);
+//             }
+//             cout << "}";
+//         }
+//     }, json.value);
+// }
+
+
+
+void printJson(const Json &json) {
+    std::visit([](auto& arg) {
+
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, string_view>) {
+            cout << "\"" << arg << "\"";
+        }
+        else if constexpr (std::is_same_v<T, Json::JsonList>) {
+            cout << "[";
+            for (int i = 0; i < (int)arg.size(); i++) {
+                if (i > 0) cout << ",";
+                printJson(*arg[i]);
+            }
+            cout << "]";
+        }
+        else if constexpr (std::is_same_v<T, Json::JsonObject>) {
+            cout << "{";
+            bool first = true;
+            for (auto &kv : arg) {
+                if (!first) cout << ",";
+                first = false;
+
+                cout << "\"" << kv.first << "\":";
+                printJson(*kv.second);
+            }
+            cout << "}";
+        }
+
+    }, json.value);
+}
+
+int main() {
+    string json1 = R"({"name":"Alice","age":"25","hobbies":["reading","music"]})";
+
+    int i = 0;
+
+    try {
+        auto json = createJson(i, json1);
+        printJson(*json);
+        cout << endl;
+    } catch (const exception &e) {
+        cout << "Error: " << e.what() << endl;
+    }
+
+    return 0;
+}

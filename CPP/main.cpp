@@ -5,35 +5,40 @@
 #include <string>
 #include <string_view>
 #include <stdexcept>
+#include <variant>
 #include <cctype>
 
 using namespace std;
 
-enum class JsonType {
-    OBJECT,
-    LIST,
-    STRING
-};
+// helper for visit
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 class Json {
 public:
-    string_view myString;
-    unordered_map<string, unique_ptr<Json>> myMap;
-    vector<unique_ptr<Json>> myList;
-    JsonType myType;
+    using JsonObject = unordered_map<string, unique_ptr<Json>>;
+    using JsonList = vector<unique_ptr<Json>>;
 
-    Json(JsonType type) : myType(type) {}
+    variant<string_view, JsonList, JsonObject> value;
 
-    void add(string key, unique_ptr<Json> value) {
-        myMap[key] = std::move(value);
+    // constructors
+    Json(string_view s) : value(s) {}
+    Json(JsonList list) : value(std::move(list)) {}
+    Json(JsonObject obj) : value(std::move(obj)) {}
+
+    // add to object
+    void add(string key, unique_ptr<Json> val) {
+        auto &obj = std::get<JsonObject>(value);
+        obj[key] = std::move(val);
     }
 
-    void add(unique_ptr<Json> value) {
-        myList.push_back(std::move(value));
-    }
-
-    void set(string_view s) {
-        myString = s;
+    // add to list
+    void add(unique_ptr<Json> val) {
+        auto &list = std::get<JsonList>(value);
+        list.push_back(std::move(val));
     }
 };
 
@@ -53,8 +58,8 @@ string_view readString(int &i, const string &s) {
         throw runtime_error("Unterminated string");
 
     string_view val(s.data() + i + 1, j - i - 1);
+    i = j + 1;
 
-    i = j + 1; // std::move past closing quote
     return val;
 }
 
@@ -64,28 +69,20 @@ unique_ptr<Json> createJson(int &i, const string &s) {
     if (i >= (int)s.size())
         throw runtime_error("Unexpected end of input");
 
-    JsonType myType;
-
-    if (s[i] == '{') myType = JsonType::OBJECT;
-    else if (s[i] == '[') myType = JsonType::LIST;
-    else if (s[i] == '"') myType = JsonType::STRING;
-    else throw runtime_error("Invalid JSON value");
-
-    auto myJson = make_unique<Json>(myType);
-
     // STRING
-    if (myType == JsonType::STRING) {
-        myJson->set(readString(i, s));
-        return myJson;
+    if (s[i] == '"') {
+        return make_unique<Json>(readString(i, s));
     }
 
     // LIST
-    if (myType == JsonType::LIST) {
-        i++; // skip '['
+    else if (s[i] == '[') {
+        i++;
+        Json::JsonList list;
+
         skipWhiteSpace(i, s);
 
         while (i < (int)s.size() && s[i] != ']') {
-            myJson->add(createJson(i, s));
+            list.push_back(createJson(i, s));
             skipWhiteSpace(i, s);
 
             if (s[i] == ',') {
@@ -99,29 +96,29 @@ unique_ptr<Json> createJson(int &i, const string &s) {
         if (i >= (int)s.size() || s[i] != ']')
             throw runtime_error("Expected ']'");
 
-        i++; // skip ']'
-        return myJson;
+        i++;
+        return make_unique<Json>(std::move(list));
     }
 
     // OBJECT
-    if (myType == JsonType::OBJECT) {
-        i++; // skip '{'
+    else if (s[i] == '{') {
+        i++;
+        Json::JsonObject obj;
+
         skipWhiteSpace(i, s);
 
         while (i < (int)s.size() && s[i] != '}') {
-            // key
             string key(readString(i, s));
 
             skipWhiteSpace(i, s);
 
-            if (i >= (int)s.size() || s[i] != ':')
+            if (s[i] != ':')
                 throw runtime_error("Expected ':'");
 
-            i++; // skip ':'
+            i++;
             skipWhiteSpace(i, s);
 
-            auto value = createJson(i, s);
-            myJson->add(key, std::move(value));
+            obj[key] = createJson(i, s);
 
             skipWhiteSpace(i, s);
 
@@ -136,47 +133,85 @@ unique_ptr<Json> createJson(int &i, const string &s) {
         if (i >= (int)s.size() || s[i] != '}')
             throw runtime_error("Expected '}'");
 
-        i++; // skip '}'
-        return myJson;
+        i++;
+        return make_unique<Json>(std::move(obj));
     }
 
-    throw runtime_error("Unknown error");
+    else {
+        throw runtime_error("Invalid JSON");
+    }
 }
 
-void printJson(const unique_ptr<Json> &json) {
-    if (json->myType == JsonType::STRING) {
-        cout << "\"" << json->myString << "\"";
-    }
-    else if (json->myType == JsonType::LIST) {
-        cout << "[";
-        for (int i = 0; i < (int)json->myList.size(); i++) {
-            if (i > 0) cout << ",";
-            printJson(json->myList[i]);
-        }
-        cout << "]";
-    }
-    else {
-        cout << "{";
-        bool first = true;
-        for (auto &kv : json->myMap) {
-            if (!first) cout << ",";
-            first = false;
+// void printJson(const Json &json) {
+//     visit(overloaded{
+//         [](string_view s) {
+//             cout << "\"" << s << "\"";
+//         },
+//         [](const Json::JsonList &list) {
+//             cout << "[";
+//             for (int i = 0; i < (int)list.size(); i++) {
+//                 if (i > 0) cout << ",";
+//                 printJson(*list[i]);
+//             }
+//             cout << "]";
+//         },
+//         [](const Json::JsonObject &obj) {
+//             cout << "{";
+//             bool first = true;
+//             for (auto &kv : obj) {
+//                 if (!first) cout << ",";
+//                 first = false;
 
-            cout << "\"" << kv.first << "\":";
-            printJson(kv.second);
+//                 cout << "\"" << kv.first << "\":";
+//                 printJson(*kv.second);
+//             }
+//             cout << "}";
+//         }
+//     }, json.value);
+// }
+
+
+
+void printJson(const Json &json) {
+    std::visit([](auto& arg) {
+
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, string_view>) {
+            cout << "\"" << arg << "\"";
         }
-        cout << "}";
-    }
+        else if constexpr (std::is_same_v<T, Json::JsonList>) {
+            cout << "[";
+            for (int i = 0; i < (int)arg.size(); i++) {
+                if (i > 0) cout << ",";
+                printJson(*arg[i]);
+            }
+            cout << "]";
+        }
+        else if constexpr (std::is_same_v<T, Json::JsonObject>) {
+            cout << "{";
+            bool first = true;
+            for (auto &kv : arg) {
+                if (!first) cout << ",";
+                first = false;
+
+                cout << "\"" << kv.first << "\":";
+                printJson(*kv.second);
+            }
+            cout << "}";
+        }
+
+    }, json.value);
 }
 
 int main() {
-    string json1 = R"({"name":"Alice","age":"25","isStudent":"false","address":{"city":"Delhi","zip":"110001"},"hobbies":["reading","music"],"score":"null"})";
+    string json1 = R"({"name":"Alice","age":"25","hobbies":["reading","music"]})";
 
     int i = 0;
 
     try {
         auto json = createJson(i, json1);
-        printJson(json);
+        printJson(*json);
         cout << endl;
     } catch (const exception &e) {
         cout << "Error: " << e.what() << endl;
