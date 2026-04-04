@@ -1,16 +1,4 @@
-#include <iostream>
-#include <memory>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <string_view>
-#include <stdexcept>
-#include <variant>
-#include <cctype>
-#include <thread>
-#include <queue>
 
-using namespace std;
 
 class MyThreadPool {
     public: 
@@ -65,18 +53,3 @@ class MyThreadPool {
             }
         }
 };
-
-
-
-int main() {
-    auto start = std::chrono::high_resolution_clock::now();
-
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    cout << "Execution time: " << duration.count() << " ms" << endl;
-
-    return 0;
-}
-
-

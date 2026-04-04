@@ -1,0 +1,111 @@
+class ProtectedBuffer {
+    public: 
+        vector<int> buf;
+        int N;
+        int head, tail;
+        mutex m;
+        condition_variable cvH, cvT;
+
+        // [. ....(T) . .. (H)...]
+
+        ProtectedBuffer(size_t n) {
+            N = n;
+            buf.resize(n);
+            head = tail = 0;
+        }
+
+        void put(int x)  {
+            unique_lock<mutex> ul(m);
+            cvT.wait(ul, [this](){return (head + 1) % N != tail;});
+            buf[head] = x;
+            head = (head + 1) % N;
+            cvT.notify_one();
+        }
+
+
+        int get() {
+            unique_lock<mutex> ul(m);
+            cvH.wait(ul, [this](){return head != tail;});
+            int val = buf[tail];
+            tail = (tail + 1) % N;
+            cvH.notify_one();
+            return val;
+        }
+};
+
+
+
+templated
+
+template<typename T>
+class BlockingQueue {
+    public: 
+        BlockingQueue(size_t capacity) {
+            this->capacity = capacity;
+        }
+
+
+        template<typename ...Args>
+        void emplace(Args&& ...args) {
+            unique_lock<mutex> ul(m);
+            cv_not_full.wait(ul, [this](){return q.size() < capacity;});
+            q.emplace(std::forward<Args>(args)...);
+            ul.unlock();
+            cv_not_empty.notify_one();
+        }
+
+        T get() {
+            unique_lock<mutex> ul(m);
+            cv_not_empty.wait(ul, [this](){return q.size() > 0;});
+            T val = std::move(q.front());
+            q.pop();
+            ul.unlock();
+            cv_not_full.notify_one();
+            return val;
+        }
+
+    private:
+        queue<T> q;
+        condition_variable cv_not_full;;
+        condition_variable cv_not_empty;;
+        mutex m;
+        size_t capacity;
+
+};
+
+Semaphore using condition_variable
+
+class Semaphore {
+public:
+    explicit Semaphore(size_t n) : n(n), rem_resources(n) {}
+
+    void wait() {
+        std::unique_lock<std::mutex> ul(m);
+
+        cv.wait(ul, [this]() {
+            return rem_resources > 0;
+        });
+
+        rem_resources--;
+    }
+
+    void signal() {
+        std::unique_lock<std::mutex> ul(m);
+
+        if (rem_resources < n) {
+            rem_resources++;
+            ul.unlock();
+            cv.notify_one();
+        }
+    }
+
+private:
+    size_t n;
+    size_t rem_resources;
+    std::mutex m;
+    std::condition_variable cv;
+};
+
+Semaphore = state + permission
+Condition Variable = notification + waiting
+
