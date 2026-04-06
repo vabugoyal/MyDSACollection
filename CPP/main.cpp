@@ -9,18 +9,12 @@
 #include <cctype>
 #include <thread>
 #include <queue>
+#include <future>
 
 using namespace std;
 
 class MyThreadPool {
     public: 
-        queue<std::function<void()>> tasks;
-        size_t num_workers;
-        mutex m;
-        condition_variable cv;
-        vector<thread> workers;
-        bool stop;
-
 
         MyThreadPool(size_t poolSize) {
             num_workers = poolSize;
@@ -30,6 +24,52 @@ class MyThreadPool {
             }
         }
 
+        template<typename F, typename ...Args>
+        auto submit(F&& f, Args&& ...args)
+        -> std::future<std::invoke_result_t<F, Args...>>
+        {
+            using R = std::invoke_result_t<F, Args...>;
+            auto bound_task = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+
+            auto task = std::make_shared<std::packaged_task<R()>>(std::move(bound_task));
+            future<R> fut = task->get_future();
+
+            {
+                std::unique_lock<std::mutex> lock(m);
+
+                if (stop) {
+                    throw std::runtime_error("ThreadPool is stopped");
+                }
+
+                tasks.emplace([task]() {
+                    (*task)();
+                });
+            }
+
+            cv.notify_one();
+            return fut;
+        }
+        
+        void terminate() {
+            {
+                lock_guard<mutex> l(m);
+                stop = true;
+            }
+            cv.notify_all();
+
+            for (auto &worker: workers) {
+                worker.join();
+            }
+        }
+
+    private: 
+        queue<std::function<void()>> tasks;
+        size_t num_workers;
+        mutex m;
+        condition_variable cv;
+        vector<thread> workers;
+        bool stop;
+        
         void process() {
             // process the tasks from queue 
             while(true) {
@@ -44,25 +84,6 @@ class MyThreadPool {
                 ul.unlock();
                 task();
             }        
-        }
-
-        template<typename T>
-        void addTask(T &&task) {
-            unique_lock<mutex> ul(m);
-            tasks.push(std::forward<T>(task));
-            cv.notify_one();
-        }
-        
-        void terminate() {
-            {
-                lock_guard<mutex> l(m);
-                stop = true;
-            }
-            cv.notify_all();
-
-            for (auto &worker: workers) {
-                worker.join();
-            }
         }
 };
 

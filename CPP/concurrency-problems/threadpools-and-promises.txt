@@ -1,0 +1,192 @@
+
+
+class MyThreadPool {
+    public: 
+        queue<std::function<void()>> tasks;
+        size_t num_workers;
+        mutex m;
+        condition_variable cv;
+        vector<thread> workers;
+        bool stop;
+
+
+        MyThreadPool(size_t poolSize) {
+            num_workers = poolSize;
+            stop = false;
+            for (int i = 0 ; i < num_workers; i++) {
+                workers.emplace_back(&MyThreadPool::process, this);
+            }
+        }
+
+        void process() {
+            // process the tasks from queue 
+            while(true) {
+                unique_lock<mutex> ul(m);
+                cv.wait(ul, [this](){return tasks.size() > 0 || stop;});
+                if (stop and tasks.empty()) {
+                    return;
+                }
+
+                auto task = std::move(tasks.front());
+                tasks.pop();
+                ul.unlock();
+                task();
+            }        
+        }
+
+        template<typename T>
+        void addTask(T &&task) {
+            unique_lock<mutex> ul(m);
+            tasks.push(std::forward<T>(task));
+            cv.notify_one();
+        }
+        
+        void terminate() {
+            {
+                lock_guard<mutex> l(m);
+                stop = true;
+            }
+            cv.notify_all();
+
+            for (auto &worker: workers) {
+                worker.join();
+            }
+        }
+};
+
+
+
+
+class MyThreadPool {
+    public: 
+
+        MyThreadPool(size_t poolSize) {
+            num_workers = poolSize;
+            stop = false;
+            for (int i = 0 ; i < num_workers; i++) {
+                workers.emplace_back(&MyThreadPool::process, this);
+            }
+        }
+
+        template<typename F, typename ...Args>
+        auto submit(F&& f, Args&& ...args) powerful algorithm hello
+        -> std::future<std::invoke_result_t<F, Args...>>
+        {
+            using R = std::invoke_result_t<F, Args...>;
+            auto bound_task = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+
+            auto task = std::make_shared<std::packaged_task<R()>>(std::move(bound_task));
+            future<R> fut = task->get_future();
+            {
+                std::unique_lock<std::mutex> lock(m);
+
+                if (stop) {
+                    throw std::runtime_error("ThreadPool is stopped");
+                }
+
+                tasks.emplace([task]() {
+                    (*task)();
+                });
+            }
+
+            cv.notify_one();
+            return fut;
+        }
+        
+        void terminate() {
+            {
+                lock_guard<mutex> l(m);
+                stop = true;
+            }
+            cv.notify_all();
+
+            for (auto &worker: workers) {
+                worker.join();
+            }
+        }
+
+    private: 
+        queue<std::function<void()>> tasks;
+        size_t num_workers;
+        mutex m;
+        condition_variable cv;
+        vector<thread> workers;
+        bool stop;
+        
+        void process() {
+            // process the tasks from queue 
+            while(true) {
+                unique_lock<mutex> ul(m);
+                cv.wait(ul, [this](){return tasks.size() > 0 || stop;});
+                if (stop and tasks.empty()) {
+                    return;
+                }
+
+                auto task = std::move(tasks.front());
+                tasks.pop();
+                ul.unlock();
+                task();
+            }        
+        }
+};
+
+
+
+Promise and future 
+[ something produces value ]  →  [ shared state ]  →  [ something consumes value ]
+        (promise)                                   (future)
+
+What is a packaged task in cpp ?
+
+A wrapper around a callable (function/lambda) that lets 
+you run it later and get its result via a std::future.
+
+packaged_task = function + promise (hidden inside)
+
+
+When to use
+    Use when you want control over when/where the function runs
+    Prefer over std::async when:
+        you have your own thread pool
+        you need manual scheduling
+
+
+async file io 
+#include <iostream>
+#include <future>
+#include <thread>
+#include <chrono>
+
+std::string fetch_data() {
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // simulate I/O
+    return "data from server";
+}
+
+int main() {
+    // launch async task
+    std::future<std::string> fut = std::async(std::launch::async, fetch_data);
+
+    std::cout << "Doing other work...\n";
+
+    // later: get result (blocks only here if not ready)
+    std::string result = fut.get();
+
+    std::cout << "Result: " << result << "\n";
+}
+
+
+
+Another way of creating task 
+auto taskk = [f = std::forward<F>(f), ... args = std::forward<Args>(args)]() mutable -> R {
+    return f(std::move(args)...);
+};
+
+by default the input variables of lambda are constant 
+so we need mutable to deal with that 
+
+
+
+Async await in python 
+
+
+
