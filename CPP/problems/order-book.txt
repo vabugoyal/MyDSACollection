@@ -189,14 +189,3 @@ private:
         }
     }
 };
-
-int main()
-{
-    auto start = std::chrono::high_resolution_clock::now();
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    cout << "Execution time: " << duration.count() << " ms" << endl;
-
-    return 0;
-}
