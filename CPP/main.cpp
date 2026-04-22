@@ -14,189 +14,82 @@
 #include <map>
 #include <list>
 #include <iterator>
+#include <unordered_set>
 using namespace std;
 
-// implementing compile time order book
+// update from an exchange for a symbol 
+// client 
+    // symbols 
+    // rate limit its updates 
+    // best price received 
+    // update ids received 
+    // updates received at timestmaps 
 
-class OrderBook
-{
-public:
-    enum class Side
-    {
-        BUY,
-        SELL
-    };
+// get_updates for clients 
+// client update 
+    // no update twice 
+    // no stale updates update.timestamp < currentTime - STALE_THRESHOLD
+    // best price the newer updates != 
 
-    struct Order
-    {
-        int orderId;
-        Side side;
-        int price;
-        int quantity;
-        int sequenceNum;
 
-        Order(int id, Side s, int p, int q, int seq)
-            : orderId(id), side(s), price(p), quantity(q), sequenceNum(seq) {}
-    };
 
-    struct OrderRef
-    {
-        int price;
-        Side side;
-        list<Order>::iterator it;
-    };
 
-    void addOrder(int orderId, Side side, int price, int quantity)
-    {
-        int seqNum = getNextSequenceNum();
+/*
 
-        if (side == Side::BUY)
-        {
-            buys[price].emplace_back(orderId, side, price, quantity, seqNum);
-            auto it = prev(buys[price].end());
-            orderRefs[orderId] = {price, side, it};
-        }
-        else
-        {
-            sells[price].emplace_back(orderId, side, price, quantity, seqNum);
-            auto it = prev(sells[price].end());
-            orderRefs[orderId] = {price, side, it};
-        }
+Item
 
-        matchOrders(); // ✅ important
-    }
+WareHouse 
+    - id
+    - capacity
+    - currentStock map<itemId, quantity>
 
-    void cancelOrder(int orderId)
-    {
-        auto it = orderRefs.find(orderId);
-        if (it == orderRefs.end())
-            return;
+InventoryManager
 
-        auto ref = it->second;
-        if (ref.side == Side::BUY)
-        {
-            auto levelIt = buys.find(ref.price);
-            if (levelIt == buys.end())
-                return;
+    - items: itemId -> item
+    - warehouses: warehouseid -> warehouse 
+    - itemWarehouses: itemIdToWarehouseID - priorityQueue (quantity for itemId, warehouseid, *warehouses)
+    - EXPIRY
+    - centralHubCapacity, currentCentralHubCapacity 
 
-            levelIt->second.erase(ref.it);
+    * addWarehouse
+    * addStock (warehouseid, itemid, quantity)
+        - delete this warehouseid from itemWareHouses[warehouseid]
+        - update this warehouse 
+        - reinsert it in itemWareHouses[warehouseid]
 
-            if (levelIt->second.empty())
-            {
-                buys.erase(levelIt);
-            }
-        }
-        else
-        {
-            auto levelIt = sells.find(ref.price);
-            if (levelIt == sells.end())
-                return;
+    * requestTransfer(itemId, quantity, timestamp)
+        what warehouse to chose?
+            - highest available stock 
+            - lowest warehosue id 
 
-            levelIt->second.erase(ref.it);
+        iterate over the ware houses for this item frmo itemWarehouses map 
+        update the warehouse stock for this item 
+        put this warehouse id in reprioritize warehouseids set 
 
-            if (levelIt->second.empty())
-            {
-                sells.erase(levelIt);
-            }
-        }
-    }
+        in the end put back reprioritize warehouse ids in the correponsing itemWarehouse[itemid] priorityqueue
 
-    int getBestBid()
-    {
-        if (buys.empty())
-            return -1;
-        return buys.begin()->first;
-    }
 
-    int getBestAsk()
-    {
-        if (sells.empty())
-            return -1;
-        return sells.begin()->first;
-    }
 
-private:
-    int currSequenceNum = 0;
 
-    // BUY: highest price first
-    map<int, list<Order>, greater<int>> buys;
 
-    // SELL: lowest price first
-    map<int, list<Order>> sells;
 
-    unordered_map<int, OrderRef> orderRefs;
 
-    int getNextSequenceNum()
-    {
-        return ++currSequenceNum;
-    }
+*/
 
-    void matchOrders()
-    {
-        while (!buys.empty() && !sells.empty())
-        {
-            auto buyIt = buys.begin();
-            auto sellIt = sells.begin();
 
-            int bestBid = buyIt->first;
-            int bestAsk = sellIt->first;
 
-            // no crossing
-            if (bestBid < bestAsk)
-                break;
 
-            auto &buyList = buyIt->second;
-            auto &sellList = sellIt->second;
 
-            Order &buyOrder = buyList.front();
-            Order &sellOrder = sellList.front();
 
-            int tradedQty = min(buyOrder.quantity, sellOrder.quantity);
 
-            // execution price = resting order price (sell side here)
-            int tradePrice = sellOrder.price;
 
-            // (optional) print trade
-            // cout << "Trade: " << tradedQty << " @ " << tradePrice << endl;
 
-            buyOrder.quantity -= tradedQty;
-            sellOrder.quantity -= tradedQty;
 
-            // remove fully filled buy
-            if (buyOrder.quantity == 0)
-            {
-                orderRefs.erase(buyOrder.orderId);
-                buyList.pop_front();
-            }
 
-            // remove fully filled sell
-            if (sellOrder.quantity == 0)
-            {
-                orderRefs.erase(sellOrder.orderId);
-                sellList.pop_front();
-            }
+int main() {
 
-            // clean empty price levels
-            if (buyList.empty())
-            {
-                buys.erase(buyIt);
-            }
 
-            if (sellList.empty())
-            {
-                sells.erase(sellIt);
-            }
-        }
-    }
-};
 
-int main()
-{
-    auto start = std::chrono::high_resolution_clock::now();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    cout << "Execution time: " << duration.count() << " ms" << endl;
 
-    return 0;
 }

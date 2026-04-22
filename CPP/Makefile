@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -fcolor-diagnostics -fansi-escape-codes -g -std=c++17
+CFLAGS = -fcolor-diagnostics -fansi-escape-codes -g -std=c++20 --save-temps -o1
 TARGET = main
 SRC = main.cpp
 OBJ = $(SRC:.cpp=.o)
