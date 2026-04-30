@@ -1,0 +1,7 @@
+{
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "clangd.arguments": [
+    "--background-index",
+    "--compile-commands-dir=build"
+  ]
+}

@@ -1,95 +1,152 @@
+#include <cctype>
+#include <functional>
+#include <future>
 #include <iostream>
+#include <iterator>
+#include <list>
+#include <map>
 #include <memory>
-#include <unordered_map>
-#include <vector>
+#include <queue>
+#include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <stdexcept>
-#include <variant>
-#include <cctype>
 #include <thread>
-#include <queue>
-#include <future>
-#include <set>
-#include <map>
-#include <list>
-#include <iterator>
+#include <unordered_map>
 #include <unordered_set>
+#include <variant>
+#include <vector>
+#include <stack>
+#include <list>
 using namespace std;
 
-// update from an exchange for a symbol 
-// client 
-    // symbols 
-    // rate limit its updates 
-    // best price received 
-    // update ids received 
-    // updates received at timestmaps 
-
-// get_updates for clients 
-// client update 
-    // no update twice 
-    // no stale updates update.timestamp < currentTime - STALE_THRESHOLD
-    // best price the newer updates != 
 
 
+void solve() {
+
+    string s; cin >> s;
+    int n = s.size();
+
+    // min  
+    list<int> unknownPos;
+    // max 
+    stack<int> stillOpen;
 
 
-/*
+    int currOpen = 0;
+    for (int i = 0; i < n; i++) {
+        if (s[i] == '(') {
+            currOpen++;
+            stillOpen.push(i);
+        }
+        else if (s[i] == ')') {
+            currOpen--;
+            if (!stillOpen.empty()) stillOpen.pop();
+            else if (currOpen < 0) {
+                // gotta find something to match this against 
+                if (unknownPos.empty()) {
+                    cout << "NO" << endl;
+                    return;
+                }
 
-Item
+                // put ( at the latest available ?
+                s[unknownPos.front()] = '(';
+                unknownPos.pop_front();
+                currOpen++; 
+            }
+        }
+        else {
+            // this is still unknown 
+            unknownPos.push_back(i);
 
-WareHouse 
-    - id
-    - capacity
-    - currentStock map<itemId, quantity>
+            if (currOpen == 0) {
+                // if we are at the end nevermind
+                if (i == n - 1) continue;
+                
+                // gotta open at the first ? 
+                if (unknownPos.empty()) {
+                    cout << "NO" << endl;
+                    return;
+                }
 
-InventoryManager
+                s[unknownPos.front()] = '(';
+                stillOpen.push(unknownPos.front());
+                unknownPos.pop_front();
+                currOpen++;
+            }
+        }
+    }
 
-    - items: itemId -> item
-    - warehouses: warehouseid -> warehouse 
-    - itemWarehouses: itemIdToWarehouseID - priorityQueue (quantity for itemId, warehouseid, *warehouses)
-    - EXPIRY
-    - centralHubCapacity, currentCentralHubCapacity 
-
-    * addWarehouse
-    * addStock (warehouseid, itemid, quantity)
-        - delete this warehouseid from itemWareHouses[warehouseid]
-        - update this warehouse 
-        - reinsert it in itemWareHouses[warehouseid]
-
-    * requestTransfer(itemId, quantity, timestamp)
-        what warehouse to chose?
-            - highest available stock 
-            - lowest warehosue id 
-
-        iterate over the ware houses for this item frmo itemWarehouses map 
-        update the warehouse stock for this item 
-        put this warehouse id in reprioritize warehouseids set 
-
-        in the end put back reprioritize warehouse ids in the correponsing itemWarehouse[itemid] priorityqueue
-
-
-
+    // I have some stillOpen and I have some unknowns 
+    // still opens are the lowest positions 
+    // unknowns are the max positions 
+    // lets see if I can close all the open ones first 
 
 
+    while(!stillOpen.empty()) {
+        // see if there is some ? to put a ) there
+        if (unknownPos.empty()) {
+            cout << "NO" << endl;
+            return;
+        }
 
+        // try to make a match
+        if (stillOpen.top() < unknownPos.back()) {
+            s[unknownPos.back()] = ')';
+            stillOpen.pop();
+            unknownPos.pop_back();
+        } else {
+            cout << "NO" << endl;
+            return;
+        }
+    }
 
-*/
+    if ((unknownPos.size() % 2) || unknownPos.size() > 2) {
+        cout << "NO" << endl;
+        return;
+    }
 
+    if (unknownPos.empty()) {
+        cout << "YES" << endl;
+        return;
+    }
 
+    
+    // there are only two ?s remaining 
+    // we can obviously put ... (   ..... ) ....
+    // lets try puting ..... ) .. .... ( ....
+    // and see if we an have the second version as balanced too 
+    s[unknownPos.front()] = ')'; 
+    s[unknownPos.back()] = '('; 
 
+    // check if the second string is balanced 
+    
+    int open = 0;
+    for (auto x : s) {
+        if (x == '(') open++;
+        else open--;
+        // second string is invalidated, there is unique RBS
+        if (open < 0) {
+            cout << "YES" << endl;
+            return;
+        }
+    }
 
+    // second string is invalidated, there is unique RBS
+    if (open < 0) {
+            cout << "YES" << endl;
+            return;
+    }
 
-
-
-
-
-
+    cout << "NO" << endl;
+    
+}
 
 int main() {
-
-
-
-
+  int t;
+  cin >> t;
+  while (t--) {
+    solve();
+  }
 
 }
