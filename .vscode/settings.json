@@ -3,5 +3,11 @@
   "clangd.arguments": [
     "--background-index",
     "--compile-commands-dir=build"
-  ]
+  ],
+    "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "editor.formatOnSave": true,
+
+
 }

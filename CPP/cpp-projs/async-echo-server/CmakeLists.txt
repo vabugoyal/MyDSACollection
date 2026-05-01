@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.16)
+project(EchoServer)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# find boost 
+find_package(Boost REQUIRED)
+
+add_executable(echo_server main.cpp)
+
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+file(GLOB_RECURSE BEAST_FILES
+  ${Boost_INCLUDE_DIRS}/boost/beast/*.hpp
+  ${Boost_INCLUDE_DIRS}/boost/beast/*.ipp)
+
+source_group(TREE ${Boost_INCLUDE_DIRS}/boost/beast PREFIX beast FILES ${BEAST_FILES})

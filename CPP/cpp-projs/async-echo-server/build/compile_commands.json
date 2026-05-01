@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/cpp-projs/async-echo-server/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/echo_server.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/cpp-projs/async-echo-server/main.cpp",
+  "file": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/cpp-projs/async-echo-server/main.cpp",
+  "output": "CMakeFiles/echo_server.dir/main.cpp.o"
+}
+]
