@@ -1,152 +1,140 @@
-#include <cctype>
+#include <climits>
 #include <functional>
-#include <future>
-#include <iostream>
+#include <istream>
 #include <iterator>
 #include <list>
 #include <map>
-#include <memory>
+#include <ostream>
 #include <queue>
 #include <set>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <thread>
-#include <unordered_map>
-#include <unordered_set>
-#include <variant>
-#include <vector>
-#include <stack>
-#include <list>
+#include <type_traits>
+#include <utility>
+
+#include "iostream"
+#include "string"
 using namespace std;
 
+// struct request {
+//     int version;
+//     string method;
+//     string target;
+//     map<string, string> fields;
+//     string body;
+// };
 
+// struct response {
+//     int version;
+//     int status;
+//     string reason;
+//     map<string, string> fields;
+//     string body;
+// };
 
-void solve() {
+// not allocator aware
+// body type is hardcoded
+// field type hard coded to std::map
+// field names are case insensitive
+// request, response does have anything in common and are separate types
 
-    string s; cin >> s;
-    int n = s.size();
+/// Holds an HTTP message
 
-    // min  
-    list<int> unknownPos;
-    // max 
-    stack<int> stillOpen;
+template <class Allocator>
+struct basic_fields {
+    void set(string_view name, string_view value);
+    string_view operator[](string_view name) const;
+};
+/// A typical HTTP Fields container
+using fields = basic_fields<allocator<char>>;
 
+template <bool isRequest, class Body, class Fields>
+struct message;
 
-    int currOpen = 0;
-    for (int i = 0; i < n; i++) {
-        if (s[i] == '(') {
-            currOpen++;
-            stillOpen.push(i);
-        }
-        else if (s[i] == ')') {
-            currOpen--;
-            if (!stillOpen.empty()) stillOpen.pop();
-            else if (currOpen < 0) {
-                // gotta find something to match this against 
-                if (unknownPos.empty()) {
-                    cout << "NO" << endl;
-                    return;
-                }
+template <class Body, class Fields> 
+struct message<true, Body, Fields> : private Body::value_tyoe, Fields {
+    int version;
+    string method;
+    string target;
+    map<string, string> fields;
 
-                // put ( at the latest available ?
-                s[unknownPos.front()] = '(';
-                unknownPos.pop_front();
-                currOpen++; 
-            }
-        }
-        else {
-            // this is still unknown 
-            unknownPos.push_back(i);
+    typename Body::value_type& body() { return *this; }
 
-            if (currOpen == 0) {
-                // if we are at the end nevermind
-                if (i == n - 1) continue;
-                
-                // gotta open at the first ? 
-                if (unknownPos.empty()) {
-                    cout << "NO" << endl;
-                    return;
-                }
+    typename Body::value_type const& body() const { return *this; }
+};
 
-                s[unknownPos.front()] = '(';
-                stillOpen.push(unknownPos.front());
-                unknownPos.pop_front();
-                currOpen++;
-            }
-        }
-    }
+// BODY REQUIREMENTS
+template <class Body, typename = void>
+struct is_body : false_type {};
 
-    // I have some stillOpen and I have some unknowns 
-    // still opens are the lowest positions 
-    // unknowns are the max positions 
-    // lets see if I can close all the open ones first 
+template <class Body>
+struct is_body<
+    Body,
+    void_t<typename Body::value_type,
+           decltype(Body::read(declval<istream&>(), declval<typename Body::value_type&>()),
+                    Body::write(declval<ostream&>(), declval<typename Body::value_type const&>()),
+                    (void)0)>> : true_type {};
 
+/// Serialize an HTTP message
+template <bool isRequest, class Body, class Fields>
+void write(ostream& os, message<isRequest, Body, Fields> const& msg) {
+    // write_header(os, msg);
+    Body::write(os, msg);
+};
 
-    while(!stillOpen.empty()) {
-        // see if there is some ? to put a ) there
-        if (unknownPos.empty()) {
-            cout << "NO" << endl;
-            return;
-        }
-
-        // try to make a match
-        if (stillOpen.top() < unknownPos.back()) {
-            s[unknownPos.back()] = ')';
-            stillOpen.pop();
-            unknownPos.pop_back();
-        } else {
-            cout << "NO" << endl;
-            return;
-        }
-    }
-
-    if ((unknownPos.size() % 2) || unknownPos.size() > 2) {
-        cout << "NO" << endl;
-        return;
-    }
-
-    if (unknownPos.empty()) {
-        cout << "YES" << endl;
-        return;
-    }
-
-    
-    // there are only two ?s remaining 
-    // we can obviously put ... (   ..... ) ....
-    // lets try puting ..... ) .. .... ( ....
-    // and see if we an have the second version as balanced too 
-    s[unknownPos.front()] = ')'; 
-    s[unknownPos.back()] = '('; 
-
-    // check if the second string is balanced 
-    
-    int open = 0;
-    for (auto x : s) {
-        if (x == '(') open++;
-        else open--;
-        // second string is invalidated, there is unique RBS
-        if (open < 0) {
-            cout << "YES" << endl;
-            return;
-        }
-    }
-
-    // second string is invalidated, there is unique RBS
-    if (open < 0) {
-            cout << "YES" << endl;
-            return;
-    }
-
-    cout << "NO" << endl;
-    
+template <bool isRequest, class Body, class Fields>
+void read(istream& is, message<isRequest, Body, Fields> const& msg) {
+    // read_header(is, msg)
+    Body::read(is, msg);
 }
 
-int main() {
-  int t;
-  cin >> t;
-  while (t--) {
-    solve();
-  }
+// REQUEST RESPONSE
+template <class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
 
-}
+template <class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
+
+// BODIES
+struct string_body {
+    using value_type = string;
+    static void read(istream& is, string& body) { is >> body; }
+    static void write(ostream& os, string const& body) { os << body; }
+};
+
+/// A Body that uses a vector container
+template <class T, class Allocator = allocator<T>>
+struct vector_body {
+    using value_type = vector<T, Allocator>;
+    static void write(ostream& os, vector<T, Allocator> const& body);
+};
+
+template <class T>
+struct list_body {
+    using value_type = list<T>;
+    static void write(ostream& os, list<T> const& body) {
+        for (auto const& value : body) os << value;
+    }
+};
+
+/// A Body using file contents
+struct file_body {
+    using value_type = string;  // Path to file
+    static void write(ostream& os, string const& path) {
+        size_t n;
+        char buf[4096];
+        FILE* f = fopen(path.c_str(), "rb");
+        while (n = fread(buf, 1, sizeof(buf), f)) os.write(buf, n);
+        fclose(f);
+    }
+};
+
+/// An empty Body
+struct empty_body {
+    // this is not actually empty and has size 1
+    // so probably not ideal for empty body which should have a size of 0
+    struct value_type {};
+    static void write(ostream&, value_type const&) {
+        // Do nothing
+    }
+};
+
+int main() {}

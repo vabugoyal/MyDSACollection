@@ -1,0 +1,140 @@
+#include <climits>
+#include <functional>
+#include <istream>
+#include <iterator>
+#include <list>
+#include <map>
+#include <ostream>
+#include <queue>
+#include <set>
+#include <type_traits>
+#include <utility>
+
+#include "iostream"
+#include "string"
+using namespace std;
+
+// struct request {
+//     int version;
+//     string method;
+//     string target;
+//     map<string, string> fields;
+//     string body;
+// };
+
+// struct response {
+//     int version;
+//     int status;
+//     string reason;
+//     map<string, string> fields;
+//     string body;
+// };
+
+// not allocator aware
+// body type is hardcoded
+// field type hard coded to std::map
+// field names are case insensitive
+// request, response does have anything in common and are separate types
+
+/// Holds an HTTP message
+
+template <class Allocator>
+struct basic_fields {
+    void set(string_view name, string_view value);
+    string_view operator[](string_view name) const;
+};
+/// A typical HTTP Fields container
+using fields = basic_fields<allocator<char>>;
+
+template <bool isRequest, class Body, class Fields>
+struct message;
+
+template <class Body, class Fields> 
+struct message<true, Body, Fields> : private Body::value_tyoe, Fields {
+    int version;
+    string method;
+    string target;
+    map<string, string> fields;
+
+    typename Body::value_type& body() { return *this; }
+
+    typename Body::value_type const& body() const { return *this; }
+};
+
+// BODY REQUIREMENTS
+template <class Body, typename = void>
+struct is_body : false_type {};
+
+template <class Body>
+struct is_body<
+    Body,
+    void_t<typename Body::value_type,
+           decltype(Body::read(declval<istream&>(), declval<typename Body::value_type&>()),
+                    Body::write(declval<ostream&>(), declval<typename Body::value_type const&>()),
+                    (void)0)>> : true_type {};
+
+/// Serialize an HTTP message
+template <bool isRequest, class Body, class Fields>
+void write(ostream& os, message<isRequest, Body, Fields> const& msg) {
+    // write_header(os, msg);
+    Body::write(os, msg);
+};
+
+template <bool isRequest, class Body, class Fields>
+void read(istream& is, message<isRequest, Body, Fields> const& msg) {
+    // read_header(is, msg)
+    Body::read(is, msg);
+}
+
+// REQUEST RESPONSE
+template <class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
+
+template <class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
+
+// BODIES
+struct string_body {
+    using value_type = string;
+    static void read(istream& is, string& body) { is >> body; }
+    static void write(ostream& os, string const& body) { os << body; }
+};
+
+/// A Body that uses a vector container
+template <class T, class Allocator = allocator<T>>
+struct vector_body {
+    using value_type = vector<T, Allocator>;
+    static void write(ostream& os, vector<T, Allocator> const& body);
+};
+
+template <class T>
+struct list_body {
+    using value_type = list<T>;
+    static void write(ostream& os, list<T> const& body) {
+        for (auto const& value : body) os << value;
+    }
+};
+
+/// A Body using file contents
+struct file_body {
+    using value_type = string;  // Path to file
+    static void write(ostream& os, string const& path) {
+        size_t n;
+        char buf[4096];
+        FILE* f = fopen(path.c_str(), "rb");
+        while (n = fread(buf, 1, sizeof(buf), f)) os.write(buf, n);
+        fclose(f);
+    }
+};
+
+/// An empty Body
+struct empty_body {
+    // this is not actually empty and has size 1
+    // so probably not ideal for empty body which should have a size of 0
+    struct value_type {};
+    static void write(ostream&, value_type const&) {
+        // Do nothing
+    }
+};
+
+int main() {}
