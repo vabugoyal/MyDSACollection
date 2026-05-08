@@ -23,3 +23,35 @@ TODO:
     Know specialization, SFINAE, variadic templates
     Be able to explain performance implications (no runtime overhead, inlining)
     Practice small code snippets rather than just theory    
+
+
+CRTP is Zero Cost polymorphism 
+
+template<typename Derived>
+class Base {
+    public:
+    void interface() {
+        static_cast<Derived*>(this)->implementation();
+    }
+};
+
+class Derived : public Base<Derived> {
+    public:
+    void implementation() {
+        cout << "This is being called from base class" << endl;
+    }
+};
+
+while this only gives us static polymorphism the following gives 
+us both which is static and dynamic polymorphism 
+
+struct Interface {
+    virtual void call() = 0;
+};
+
+template <typename Derived>
+struct CRTPBase : Interface {
+    void call() override {
+        static_cast<Derived*>(this)->impl();
+    }
+};

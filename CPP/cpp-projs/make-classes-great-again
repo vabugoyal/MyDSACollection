@@ -1,4 +1,5 @@
 #include <climits>
+#include <concepts>
 #include <functional>
 #include <istream>
 #include <iterator>
@@ -38,6 +39,16 @@ using namespace std;
 
 /// Holds an HTTP message
 
+template <class Body>
+concept BodyConcept = requires(
+    istream& is, 
+    ostream& os, typename Body::value_type& v,                           
+    typename Body::value_type const& cv) 
+{
+    { write(os, cv) };
+    { read(is, v) };
+};
+
 template <class Allocator>
 struct basic_fields {
     void set(string_view name, string_view value);
@@ -49,8 +60,8 @@ using fields = basic_fields<allocator<char>>;
 template <bool isRequest, class Body, class Fields>
 struct message;
 
-template <class Body, class Fields> 
-struct message<true, Body, Fields> : private Body::value_tyoe, Fields {
+template <class Body, class Fields>
+struct message<true, Body, Fields> : private Body::value_type, Fields {
     int version;
     string method;
     string target;
@@ -77,6 +88,7 @@ struct is_body<
 template <bool isRequest, class Body, class Fields>
 void write(ostream& os, message<isRequest, Body, Fields> const& msg) {
     // write_header(os, msg);
+    static_assert(is_body<Body>::value, "Body requirements not met");
     Body::write(os, msg);
 };
 
