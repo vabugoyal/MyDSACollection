@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/build",
+  "command": "clang++   -g -std=gnu++20 -arch arm64 -fcolor-diagnostics -fansi-escape-codes -g --save-temps -O1 -o CMakeFiles/main.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
+  "file": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
+  "output": "CMakeFiles/main.dir/main.cpp.o"
+}
+]

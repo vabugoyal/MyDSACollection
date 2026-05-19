@@ -1,0 +1,10 @@
+CompileFlags:
+  CompilationDatabase: CPP/build
+  Add: ["-std=gnu++20"]
+Completion:
+  AllScopes: true
+  Limit: 100
+Index:
+  Background: Build
+InlayHints:
+  Enabled: true
