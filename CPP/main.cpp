@@ -1,15 +1,116 @@
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <ctime>
 #include <iostream>
-#include <type_traits>
+#include <mutex>
+#include <thread>
+
+#include "thread"
 using namespace std;
 
+// practice lock free shit a little bit more
 
+class SnowFlakeBasedCounter {
+   public:
+    SnowFlakeBasedCounter(uint16_t machine_id) : _machine_id(machine_id) {
+        if (machine_id > _max_machine_id) {
+            string msg = "machine id cannot be greater than" + to_string(_max_machine_id);
+            throw invalid_argument(msg);
+        }
 
+        _state.store(0, std::memory_order_relaxed);
+    }
 
-int main() { 
+    // retuns the next available number
+    uint64_t next() {
+        while (true) {
+            uint64_t current_millis = get_current_millis();
+            uint64_t state = _state.load(std::memory_order_relaxed);
+            uint64_t next_state, use_state;
 
-    
+            auto [state_millis, state_seq] = unpack_state(state);
 
+            while (current_millis < state_millis) {
+                std::this_thread::sleep_for(chrono::microseconds(50));
 
+                current_millis = get_current_millis();
+            }
+
+            if (state_millis == current_millis && state_seq < _max_sequence_number) {
+                // try to increase seq num
+                use_state = state;
+                next_state = state + 1;
+            } else {
+                while (current_millis < state_millis + 1) {
+                    std::this_thread::sleep_for(chrono::microseconds(10));
+                    current_millis = get_current_millis();
+                }
+                use_state = compose_state(current_millis, 0);
+                next_state = compose_state(current_millis, 1);
+            }
+
+            if (_state.compare_exchange_strong(state, next_state, std::memory_order_relaxed,
+                                               std::memory_order_relaxed)) {
+                return use_state;
+            }
+        }
+    }
+
+   private:
+    // layout
+    // timestmap | machine id | sequence number
+    //    41     |     10     |       12
+
+    pair<uint64_t, uint64_t> unpack_state(uint64_t state) {
+        uint64_t sequence_num = state & ((1LL << _sequence_bits) - 1);
+        uint64_t timestamp = state >> (_sequence_bits + _machine_bits);
+        return {timestamp, sequence_num};
+    }
+
+    uint64_t compose_state(uint64_t timestamp, uint64_t sequence_num) {
+        return timestamp << (_sequence_bits + _machine_bits) | _machine_id << (_sequence_bits) |
+               sequence_num;
+    }
+
+    uint64_t get_current_millis() {
+        return chrono::duration_cast<chrono::milliseconds>(
+                   chrono::system_clock::now().time_since_epoch())
+                   .count() -
+               _customEpoch;
+    }
+
+    static constexpr uint64_t _customEpoch = 1704067200000ULL;  // 2024-01-01 UTC
+    static constexpr uint64_t _machine_bits = 10;
+
+    static constexpr uint64_t _sequence_bits = 12;
+
+    static constexpr uint64_t _max_machine_id = (1LL << _machine_bits) - 1;
+    static constexpr uint64_t _max_sequence_number = (1LL << _sequence_bits) - 1;
+
+    atomic<uint64_t> _state;
+
+    uint16_t _machine_id;
+};
+
+mutex m;
+
+int main() {
+    SnowFlakeBasedCounter b(12);
+
+    auto f = [&]() {
+        while (true) {
+            auto id = b.next();
+            {
+                lock_guard<mutex> l(m);
+                cout << "Thread " << this_thread::get_id() << " :" << id << endl;
+            }
+            this_thread::sleep_for(chrono::seconds(1));
+        }
+    };
+
+    jthread t1(f), t2(f);
 }
-
-
