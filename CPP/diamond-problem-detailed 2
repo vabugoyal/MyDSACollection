@@ -1,0 +1,167 @@
+C++ Virtual Inheritance & Diamond Problem – Quick Rules Notes
+1️⃣ Diamond Problem
+      A
+    /   \
+   B     C
+    \   /
+      D
+
+
+Without virtual inheritance → two copies of A in D
+
+Virtual inheritance → shared A
+
+class A { public: int _a; };
+class B : virtual public A { public: int _b; };
+class C : virtual public A { public: int _c; };
+class D : public B, public C { public: int _d; };
+
+D d;
+d._a = 10;  // only one copy of A
+d._b = 5;
+d._c = 7;
+d._d = 11;
+
+2️⃣ Virtual Inheritance
+
+Applied to intermediate bases (B, C), not most derived (D)
+
+Ensures shared virtual base
+
+Even if base has no virtual functions, vptr may exist
+
+struct B : virtual A {};
+struct C : virtual A {};
+struct D : B, C {};
+
+3️⃣ Memory Layout
+[D object memory]
+
+[ shared virtual A ]      <-- virtual base
+[ B part: vptr + b ]      <-- vptr points to VBTable (offset to A)
+[ C part: vptr + c ]      <-- vptr points to VBTable (offset to A)
+[ D part: d ]             <-- D's members
+
+
+Memory is contiguous
+
+Virtual base appears once
+
+Non-virtual bases have own space
+
+Derived members at the end
+
+4️⃣ Construction Order
+1. Virtual bases (shared, top-most)
+2. Non-virtual bases (in declaration order)
+3. Derived class members
+
+
+Only most derived class constructs virtual bases
+
+Intermediate constructors cannot pass args to virtual base constructor (ignored)
+
+Intermediate constructors can assign to virtual base members
+
+5️⃣ Virtual Base Initialization
+struct A { int a; A(){}; A(int i){a=i;} };
+struct B : virtual A { B() : A(1) {} };  // ignored
+struct C : virtual A { C() : A(2) {} };  // ignored
+struct D : B, C { D() : A(42), B(), C() {} };  // initializes virtual base
+
+
+Output d.a → 42
+
+If D doesn’t call A(int) → default constructor used → may contain garbage
+
+6️⃣ Member Assignment in Virtual Base
+struct B : virtual A { B() { a = 1; } };
+struct C : virtual A { C() { a = 2; } };
+struct D : B, C {};
+
+
+Allowed!
+
+Last assignment wins → d.a = 2
+
+7️⃣ Scope Resolution Operator
+struct B { int x = 1; };
+struct C { int x = 2; };
+struct D : B, C {};
+D d;
+
+d.B::x;  // access B's x
+d.C::x;  // access C's x
+
+
+Needed if multiple base classes have same member name
+
+Can also access virtual base explicitly if shadowed: d.A::x
+
+8️⃣ vptr / VBTable in Virtual Inheritance
+
+    vptr exists in each intermediate class (B, C) that virtually inherits a base
+
+    Points to VBTable, storing offsets to virtual bases
+
+    Used even without virtual functions
+
+    [D object memory]
+
+    [ shared virtual A ]
+    [ B part: vptr -> VBTable (offset to A) ]
+    [ C part: vptr -> VBTable (offset to A) ]
+    [ D part ]
+
+9️⃣ Compile-time vs Runtime
+
+    VBTable layout is known at compile-time
+
+    vptr + VBTable used at runtime when accessing virtual base via base pointer
+
+    D d;
+    B* pb = &d;
+    pb->a = 5; // uses vptr to locate shared virtual A
+
+
+    Direct access (d.a) → compiler may optimize away vptr
+
+🔟 Quick Rules / Mnemonics
+- Diamond problem → virtual inheritance
+- virtual keyword → intermediate bases only
+- Memory layout → [Virtual Base][Non-Virtual Bases][Derived Members]
+- Construction → virtual bases -> non-virtual bases -> derived
+- Virtual base init → only most derived class can pass args
+- Intermediate can assign but not initialize virtual base
+- Scope resolution → resolve ambiguity with same member names
+- vptr = pointer to VBTable (offsets to virtual bases)
+- Compile-time knows layout, runtime adjusts via vptr for base pointer access
+- Mnemonic: "Virtual first, non-virtual next, derived last"
+
+
+
+
+ABI (Application Binary Interface)
+    ABI (Application Binary Interface) tells the compiler how to lay out objects in memory, including:
+    Where each data member goes (base + derived).
+    Where the vptr(s) go for virtual functions.
+    Where vbptr(s) go for virtual bases.
+    Offsets needed for multiple/virtual inheritance.
+    Calling conventions for functions (especially virtual ones).
+
+    Single inheritance with virtual:
+        Object:
+        | vptr | base data | derived data |
+
+    Multiple inheritance:
+        Object:
+        | vptr_A | A data | vptr_B | B data | Derived data |
+
+    Virtual base:
+        Object:
+        | vptr | vbptr | derived data | shared virtual base |
+
+
+    Vtable: per class, created at compile-time, contains virtual function pointers and offsets.
+    Vptr: per object, set at runtime by constructor, points to class vtable.
+    Virtual calls: use vptr → vtable lookup at runtime.

@@ -1,0 +1,265 @@
+#include <iostream>
+#include <thread>
+#include <atomic>
+
+std::atomic<int> counter = 0; // Shared variable
+
+void increment(int times) {
+    for (int i = 0; i < times; ++i) {
+        counter++; // No locks here, race condition possible
+    }
+}
+
+int main() {
+    const int increments = 1000000;
+
+    std::thread t1(increment, increments);
+    std::thread t2(increment, increments);
+
+    t1.join();
+    t2.join();
+
+    std::cout << "Final counter value: " << counter << std::endl;
+    return 0;
+}
+
+Atomic operations across cores use cache-coherence
+protocols (like MESI) and CPU atomic instructions so
+that only one core updates the variable at a time,
+while other cores’ cached copies are invalidated and retried if needed.
+
+Which types can be made atomic?
+- any trivially copyable type can be made atomic
+- continuous chunk of memory which can be copied using memcopy
+
+
+What other operations can be atomic?
+Explicit read and writes
+    std::atomic<T> x;
+    T y = x.load()  // same as T y = x
+    x.store(y)      // same as x = y
+Atomic Exchange
+T z = x.exchange(y)
+
+Compare and swap
+bool success = x.compare_exchange_strong(y, z)
+if x == y then x = z // return true
+else y = x // return false
+
+
+What is so special about CAS?
+Compare and swap is used in most lock free algorithms
+
+Example: atomic increment with CAS
+    std::atomic<int> x{0};
+    int x0 = x;
+    while(!x.compare_and_swap_strong(x0, x0 + 1)) {}
+
+For integer T
+std::atomic<int> x;
+x.fetch_add(y); // same as x += y
+int z = x.fetch_add(y)  // same as z = (x += y) - y;
+
+there are also
+x.fetch_sub()
+x.fetch_and()
+x.fetch_or()
+x.fetch_xor()
+
+How fast are atomic operations()?
+Atomic operations do have to wait for cache line access
+ - price of data sharing without races
+ - accessing different locations in the same cache line (withing 64 bytes) still
+   incurs run-time penalty (false sharing)
+ - avoid false sharing by aligning per thread data to separate cache lines
+
+
+Strong and weak compare and swap
+c++ provide two versions of compare and swap
+
+x.compare_exchange_strong(old_x, old_y)
+if (x == old_x) {x = new_x; return true;}
+else {old_x = x; return false;}
+
+x.compare_exchange_weak(old_x, old_y):
+same thing but can "spuriously fail" and return false
+even if x == old_x
+
+Lock free data structures
+
+For example: ATOMIC LOCK FREE QUEUE
+int q[N];
+std::atomic<int> front;
+void push(int x) {
+    int my_slot = front.fetch_add(1);
+    q[my_slot] = x;
+}
+
+Lock Free list
+struct node { int value, node * next}
+std::atomic<node * > head;
+void push_front(int x) {
+    node * new_n = new node;
+    new_n->val = x;
+    node * old_h = head;
+    do {new_n->next = old_h;}
+    while(!head.compare_exchange_strong(old_h, new_n);
+}
+
+we are using atomic pointers for non-atomic memory
+
+atomics are used to get exclusive access to memory or to reveal
+memory to other threads.
+
+What guarantees are there that other threads see
+this memory in a desired state?
+- for acquiring exclusive access: data may be prepared by other
+  threads must be completed
+- for releasing into shared access: data is prepared by the owner
+  thread, must become visible to everyone
+
+
+
+
+Memory barriers - the other side of atomic !
+
+Memory barriers control how changes to memory made by 1 cpu
+become visible to other cpus.
+- Synchronization of data access is not possible if we cannot
+  control the order of memory accesses
+- this is a global control across all cpus
+- such control is provided by memory barriers
+- memory barriers are implemented by hardware
+- memory barriers are invoked through processor-specific instructions
+    - barriers are often "attributes" on read/writes operations,
+      ensuring the specified order of reads and writes
+
+Memory barriers are closely related to memory orders, they
+are what ensures the memory order.
+
+the store instruction for an atomic variable actually has one more
+argument
+std::atomic<int> x;
+x.store(1, std::memory_order_release);
+
+program order
+a b c x
+
+cpu doesn't guarantee that data will be
+loaded and read from a b c x in the
+sequential order as long as they are independent
+
+while this doesn't cause an issue in a single core program
+this might cause issues in a multi-core threaded program
+
+Acquire Barrier:
+- Acquire barrier guarantees that all the memory operations
+  scheduled after the barrier in the program order become
+  visible after the barrier (both reads and writes)
+
+- anything that was after cannot move before and
+- anything that was before can move after the barrier
+
+Release Barrier:
+- nothing that was before the barrier can move after it
+
+Acquire and release both work together
+- thread 1 write atomic variable
+    - will wait until ready to release (release barrier | no ops that are after can move before this )
+- thread 2 reads atomic variable
+    - will wait until ready to acquire (acquire barrier | no ops that are before can move after this)
+
+
+
+
+
+memory orders in c++
+- sequentially consistent -> all threads see atomic ops in the same global order,
+                             program order preserved, strongest and easiest to reason about.
+- acquire
+- release
+- relaxed
+- acq_release -> no operation can move across the barrier (both threads have to use same atomic variable)
+
+
+The default order is sequentially consistent. But we lose performance
+using this.
+
+
+Why lock free?
+    How much better is a lock free queue than mutex based queue?
+        | Metric        | Lock-Free Queue       | Mutex-Based Queue      |
+        | ------------- | --------------------- | ---------------------- |
+        | Throughput    | High under contention | Drops under contention |
+        | Latency       | Low                   | Higher due to blocking |
+        | Fairness      | Not guaranteed        | Usually fair           |
+        | Complexity    | High                  | Low                    |
+        | Memory Safety | Tricky                | Simple                 |
+
+        | Queue Type  | Fairness Reason                                                                    |
+        | ----------- | ---------------------------------------------------------------------------------- |
+        | Mutex-based | Waiting threads are queued → FIFO ordering of access                               |
+        | Lock-free   | Threads retry in a loop → CAS winners are effectively random → no guaranteed order |
+
+
+ABA Problem
+    Initial stack:      head -> [A] -> [B] -> nullptr
+    Thread 1 snapshot:  headSnapshot = [A]
+
+    Thread 2 pops A & B, pushes new node at same address:
+    head -> [C] -> nullptr
+
+    Thread 1 CAS(headSnapshot -> ???) succeeds!
+    But [A] is no longer the same node → ABA occurs
+
+    a memory which was used or is in current use by a thread
+    should not be used by the other thread.
+
+
+
+1. Why might a lock-free queue still have latency spikes?
+    * Answer: Cache contention, false sharing, or memory allocation delays.
+2. Explain a situation where MPSC queue push might fail temporarily.
+    * Answer: compare_exchange can fail under contention; loop retries.
+3. Given a lock-free stack, how do you safely delete nodes?
+    * Answer: Be aware of ABA problem; simple approach: don't free memory in hot path, use pre-allocated pool.
+
+
+The Michael Scott Lock free queue are usually for multiple producers and multiple consumers.
+
+Single Producer and Single Consumer Queue
+    In ring buffers pointers should point to where the
+    next action will happen not where the last action happened.
+
+    H -> next empty slot
+    T -> next slot to consume data from
+
+    buffer
+    1 2 3 .. .. .. . .. . N
+    T           H
+
+    // head == tails -> empty
+    // (head + 1) % N == tails -> full
+
+    Initi
+        T <- 0
+        H <- 0
+    produce
+        get snapshot of H (relaxed)   // this can read in relaxed mode because nobody else is updating H except the producer
+        get snapshot of T (acquire)
+        check if (H + 1) % N == T
+            return buffer is full (its okay if T get updated after we took the snapshot, the user can try to produce again)
+        write new data at H
+        fetch_add(1) to H (memory order release)
+    consume
+        get snapshot of H (acquire)
+        get snapshot of T (relaxed)
+        if (T == H) buffer is empty return
+        res = buffer[T]
+        fetch_add(T) memory_order release
+
+
+Multiple Producers Single Consumer
+    Same as LOCK FREE QUEUE with no CAS on head
+
+

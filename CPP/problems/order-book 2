@@ -1,0 +1,191 @@
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <stdexcept>
+#include <variant>
+#include <cctype>
+#include <thread>
+#include <queue>
+#include <future>
+#include <set>
+#include <map>
+#include <list>
+#include <iterator>
+using namespace std;
+
+// implementing compile time order book
+
+class OrderBook
+{
+public:
+    enum class Side
+    {
+        BUY,
+        SELL
+    };
+
+    struct Order
+    {
+        int orderId;
+        Side side;
+        int price;
+        int quantity;
+        int sequenceNum;
+
+        Order(int id, Side s, int p, int q, int seq)
+            : orderId(id), side(s), price(p), quantity(q), sequenceNum(seq) {}
+    };
+
+    struct OrderRef
+    {
+        int price;
+        Side side;
+        list<Order>::iterator it;
+    };
+
+    void addOrder(int orderId, Side side, int price, int quantity)
+    {
+        int seqNum = getNextSequenceNum();
+
+        if (side == Side::BUY)
+        {
+            buys[price].emplace_back(orderId, side, price, quantity, seqNum);
+            auto it = prev(buys[price].end());
+            orderRefs[orderId] = {price, side, it};
+        }
+        else
+        {
+            sells[price].emplace_back(orderId, side, price, quantity, seqNum);
+            auto it = prev(sells[price].end());
+            orderRefs[orderId] = {price, side, it};
+        }
+
+        matchOrders(); // ✅ important
+    }
+
+    void cancelOrder(int orderId)
+    {
+        auto it = orderRefs.find(orderId);
+        if (it == orderRefs.end())
+            return;
+
+        auto ref = it->second;
+        if (ref.side == Side::BUY)
+        {
+            auto levelIt = buys.find(ref.price);
+            if (levelIt == buys.end())
+                return;
+
+            levelIt->second.erase(ref.it);
+
+            if (levelIt->second.empty())
+            {
+                buys.erase(levelIt);
+            }
+        }
+        else
+        {
+            auto levelIt = sells.find(ref.price);
+            if (levelIt == sells.end())
+                return;
+
+            levelIt->second.erase(ref.it);
+
+            if (levelIt->second.empty())
+            {
+                sells.erase(levelIt);
+            }
+        }
+    }
+
+    int getBestBid()
+    {
+        if (buys.empty())
+            return -1;
+        return buys.begin()->first;
+    }
+
+    int getBestAsk()
+    {
+        if (sells.empty())
+            return -1;
+        return sells.begin()->first;
+    }
+
+private:
+    int currSequenceNum = 0;
+
+    // BUY: highest price first
+    map<int, list<Order>, greater<int>> buys;
+
+    // SELL: lowest price first
+    map<int, list<Order>> sells;
+
+    unordered_map<int, OrderRef> orderRefs;
+
+    int getNextSequenceNum()
+    {
+        return ++currSequenceNum;
+    }
+
+    void matchOrders()
+    {
+        while (!buys.empty() && !sells.empty())
+        {
+            auto buyIt = buys.begin();
+            auto sellIt = sells.begin();
+
+            int bestBid = buyIt->first;
+            int bestAsk = sellIt->first;
+
+            // no crossing
+            if (bestBid < bestAsk)
+                break;
+
+            auto &buyList = buyIt->second;
+            auto &sellList = sellIt->second;
+
+            Order &buyOrder = buyList.front();
+            Order &sellOrder = sellList.front();
+
+            int tradedQty = min(buyOrder.quantity, sellOrder.quantity);
+
+            // execution price = resting order price (sell side here)
+            int tradePrice = sellOrder.price;
+
+            // (optional) print trade
+            // cout << "Trade: " << tradedQty << " @ " << tradePrice << endl;
+
+            buyOrder.quantity -= tradedQty;
+            sellOrder.quantity -= tradedQty;
+
+            // remove fully filled buy
+            if (buyOrder.quantity == 0)
+            {
+                orderRefs.erase(buyOrder.orderId);
+                buyList.pop_front();
+            }
+
+            // remove fully filled sell
+            if (sellOrder.quantity == 0)
+            {
+                orderRefs.erase(sellOrder.orderId);
+                sellList.pop_front();
+            }
+
+            // clean empty price levels
+            if (buyList.empty())
+            {
+                buys.erase(buyIt);
+            }
+
+            if (sellList.empty())
+            {
+                sells.erase(sellIt);
+            }
+        }
+    }
+};

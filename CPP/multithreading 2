@@ -1,0 +1,645 @@
+Detached threads run independently, but if main() exits before they finish,
+the process terminates and detached threads are killed. To ensure work
+completes, either join the thread or synchronize main with the worker thread.
+
+Types of thread creations in cpp
+1. using function pointer
+2. lambda expression
+3. functors
+4. non-static member functions
+    class Base {
+    public:
+        void run(int x) {
+            while(x--) {
+                cout << x << endl;
+            }
+        }
+    };
+
+    int main() {
+        Base b;
+        thread t(&Base::run, b, 10);
+    }
+
+5. static member functions
+    no object is needed
+    thread t(&Base::run, 10);
+
+
+Join, detach and joinable
+joinable is to check if the thread has already been joined
+
+
+
+std::mutex::try_lock()
+try_lock() ->
+    this will try to get the lock, if not available it
+    can continue to do something else.
+
+    std::mutex::try_lock(m1, m2, ......)
+    - this will return -1 is all of them are locked successfully
+    - this will return the index of the mutex which it was not able to lock (0 based)
+
+timed_mutex
+    std::timed_mutex m;
+    m.try_lock_for(std::chrono::second(1));
+    now = std::chrono:steady_clock::now();
+    m.try_lock_until(now + std::chrono:seconds(1))
+
+
+recursive mutex in cpp
+    say there is a recursive call inside the critical section
+    then you call m.lock() in the recursion call as well and
+    then there will be a deadlock
+
+    it is same as the mutex. the same thread can lock a mutex
+    multiple times using a recursive mutex
+    if the thread has locked this mutex 10 times then it must unlock
+    it that many times o.w the mutex will remain locked
+
+std::lock_guard<mutex> l(m);
+    the lock on mutex will be held until this object
+    goes out of scope
+
+
+NOTE:
+    Kernel mutexes are hybrid: they use atomic instructions in
+    userspace for fast locking and fall back to kernel-managed
+    sleep queues when contention occurs.
+
+    The atomic compare-and-swap instruction is provided by the hardware (CPU), not the OS.
+    The OS uses that hardware instruction to build mutexes.
+    C++ std::mutex
+         ↓
+    OS mutex / futex
+         ↓
+    Hardware atomic instructions (CAS)
+
+    - the mutex state lives in the user space
+    - the kernel never owns the mutex
+    - the kernel only puts threads to sleep and wakes
+      them up when the userspace asks (using futex)
+    a futex is a sleep until memory value changes mechanism
+    Thread A                 Kernel                  Thread B
+    -----------------------------------------------------------
+    CAS(lock,0→1) success
+    work
+    unlock → lock=0
+    futex(WAKE)
+
+                             wake Thread B
+                                                     CAS(lock,0→1) success
+                                                     work
+
+
+std::unique_lock<mutex> lock(m1);
+    the class unique_lock is a mutex ownership wrapper
+    it allows
+        - different wrapping strategies
+        - time constrained attempts at locking (try_lock_for, try_lock_until)
+        - recursive locking
+        - transfer of lock ownership (move not copy)
+        - condition variables
+
+    Locking strategies
+        - defer_lock do not acquire ownership of a mutex at the time of creation
+            later I have to lock.lock()
+        - try_to_lock try to acquire ownership of mutex without blocking
+        - adopt_lock assume the calling thread already has the ownership of the mutex
+
+
+Condition Variable
+    - condition variable takes a unique lock object
+    - spurious wake ups are real in condition variables
+      i.e a thread may wake up even when the notify is not called.
+
+
+        #include <mutex>
+        #include <thread>
+        #include <condition_variable>
+
+        using namespace std;
+
+        mutex m;
+        std::condition_variable cv;
+        int balance = 0;
+
+        void addMoney(int money)
+        {
+            lock_guard<mutex> l(m);
+            balance += money;
+            cout << "Amount added, current balance: " << money << endl;
+            cv.notify_one();
+        }
+
+        void withdrawMoney(int money) {
+            std::unique_lock<mutex> ul(m);
+            cv.wait(ul, []{return balance != 0;});
+            if (balance >= money) {
+                balance -= money;
+                cout << "Amount Deducted: " << money << endl;
+            } else {
+                cout << "Amount can't be deducted, current balance is less than" << money << endl;
+            }
+        }
+
+        int main() {
+            thread t1(withdrawMoney, 500);
+            thread t2(addMoney, 500);
+
+            t1.join();
+            t2.join();
+        }
+
+        Diagram:
+            Thread A (addMoney)                 Thread B (withdrawMoney)
+            --------------------                -------------------------
+            lock(m)                              wait(cv, ul) → blocks, releases m
+            balance += money
+            notify_one() ──────────────►         wakes up from cv.wait
+            (still holding m)                     tries to re-lock(m)
+                                                  ─> mutex busy → BLOCKED (spins or sleeps internally)
+                                                  this will not sleep again just like before
+                                                  as the predicate no has become true
+            exit scope
+            ~lock_guard releases m ──────►        acquires m
+                                                  re-checks predicate (balance != 0)
+                                                  proceeds to deduct money
+
+
+
+
+
+Deadlock
+    locking multiple mutexes
+        problem comes when you try to lock them one by one
+            std::mutex m1, m2;
+
+            void foo() {
+                std::lock_guard<std::mutex> l1(m1);
+                std::lock_guard<std::mutex> l2(m2);
+            }
+        correct way:
+            std::mutex m1, m2;
+
+            void foo() {
+                std::lock(m1, m2);  // locks both safely
+                std::lock_guard<std::mutex> l1(m1, std::adopt_lock);
+                std::lock_guard<std::mutex> l2(m2, std::adopt_lock);
+                // critical section
+            } // both mutexes unlocked automatically
+
+    another though is how multiple mutexes are locked internally
+    which doesn't lead to a deadlock
+    lets say there are m1, m2, m3, .... mutexes which it is trying to lock
+    say its doesn't get the lock for mx then it will release all and
+    will try again to get teh lock for mx
+
+
+Future and promise in threading
+    - producer thread takes the promise object
+    - consumer thread takes the future of that promise object,
+      and waits on that future until the producer thread fulfils the promise
+
+
+std::async in cpp
+    std::async runs a function asynchronously and returns a std::future.
+    You can launch it immediately or defer execution until the result is needed.
+    launch::deferred runs the function in the calling thread at the time of get().
+    launch::async runs the function immediately in a new thread.
+
+
+binary semaphore vs mutex:
+    - semaphores doesn't have any ownership while mutexes has
+        - the thread that successfully locks the mutex becomes its owner
+        - only owning thread can unlock the mutex
+        - if any other thread tries to unlock it, this is undefined behaviour
+        mutex {
+            bool locked;
+            thread_id owner;
+        }
+        - so mutex has this resource of thread_id, if we were to copy it
+          i.e std::mutex m2 = m1; // ❌
+          there are two owners now
+
+    - a mutex protects the ownership of a resource and semaphore protects
+      the availability of the resource
+      semaphore just waits on the signal to produce and consume
+    - mutex must be unlocked by the same thread but signaling required different thread
+
+    Semaphore ≈ mutex + condition variable + counter
+
+
+forwarding and move in templates
+    raw function pointer
+        using fptr = void (*)(int,int);
+        fptr fp = someFunction;
+        fp(1,2);
+
+    the following is more than just a pointer this is polymorphic callable wrapper
+    which can take lambdas, regular functions, functors, member function pointers
+    it internally stores whatever callable you assign and type erases it
+
+    std::function<void(int,int)> f = someFunction;
+    f(1,2);
+
+        how to make polymorphic copy of an object?
+            basically you have the base class pointer for say toy
+            and you don't know which toy it is and you want to copy it
+            you cannot do
+            Toy toy = *randomToyPointer; // this will do object slicing
+            rather you need to have a clone method in the base class and
+            each derived toy class will implement this toy function and
+            figure out how to clone it
+            i.e
+            Toy * toy = randomToyPointer->clone();
+
+
+        Continuing understanding std::function<void(int,int)>
+        you can use the following to understand it
+            #include <iostream>
+            #include <memory>
+
+            // ----------------------
+            // Type-erased polymorphic base
+            template<typename R, typename... Args>
+            struct CallableBase {
+                virtual R call(Args... args) = 0;                       // call the stored callable
+                virtual std::unique_ptr<CallableBase> clone() const = 0; // copy safely
+                virtual ~CallableBase() = default;
+            };
+
+            // Wrapper for any specific callable (lambda, function pointer, functor)
+            template<typename R, typename... Args, typename Callable>
+            struct CallableDerived : CallableBase<R, Args...> {
+                Callable c;
+                CallableDerived(Callable c_) : c(c_) {}
+
+                R call(Args... args) override { return c(args...); }
+
+                std::unique_ptr<CallableBase<R, Args...>> clone() const override {
+                    return std::make_unique<CallableDerived>(*this);
+                }
+            };
+
+            // ----------------------
+            // Simplified template version of std::function
+            template<typename Signature>
+            class Function; // primary template
+
+            template<typename R, typename... Args>
+            class Function<R(Args...)> {
+                std::unique_ptr<CallableBase<R, Args...>> target; // holds any callable
+
+                public:
+                    Function() = default;
+
+                    // Construct from any callable
+                    template<typename Callable>
+                    Function(Callable c)
+                        : target(std::make_unique<CallableDerived<R, Args..., Callable>>(c)) {}
+
+                    // Copy constructor
+                    Function(const Function& other)
+                        : target(other.target ? other.target->clone() : nullptr) {}
+
+                    // Assignment
+                    Function& operator=(const Function& other) {
+                        if (this != &other)
+                            target = other.target ? other.target->clone() : nullptr;
+                        return *this;
+                    }
+
+                    // Call operator
+                    R operator()(Args... args) {
+                        if(target) return target->call(args...);
+                        throw std::bad_function_call();
+                    }
+            };
+
+            // ----------------------
+            int main() {
+                // Function storing a lambda
+                Function<void(int,int)> f = [](int x,int y){
+                    std::cout << "Sum = " << x+y << "\n";
+                };
+
+                f(3,5);
+
+                // Copy function
+                Function<void(int,int)> g = f;
+                g(10,20);
+
+                // Store a functor
+                struct Multiply {
+                    void operator()(int a,int b){ std::cout << "Mul = " << a*b << "\n"; }
+                };
+                Function<void(int,int)> h = Multiply{};
+                h(4,5);
+            }
+
+    Forwarding
+        perfect forwarding means respecting the type of a value while passing
+        it as an argument to the function. for ex. if a r value is passed to the
+        function then r value will the passed to the function built form the template
+
+        why is this not default?
+        because
+
+
+Thread Pooling
+    A pool of threads and a queue of tasks
+        struct ThreadPool {
+            bool stop;
+            deque<std::function<void()>> tasks;
+            mutex m;
+            vector<thread> threads;
+            condition_variable cv;
+            int numThreads;
+
+            void processTask() {
+                while (true) {
+                    std::function<void()> task;
+                    {
+                        unique_lock<mutex> lk(m);
+                        cv.wait(lk, [this](){ return stop || !tasks.empty(); });
+
+                        // exit only if stop is true AND all tasks are processed
+                        if (stop && tasks.empty())
+                            break;
+
+                        if (!tasks.empty()) {
+                            task = std::move(tasks.front());
+                            tasks.pop_front();
+                        } else {
+                            continue;
+                        }
+                    }
+                    cout << "Thread ID: " << std::this_thread::get_id() << " ";
+                    task();
+                }
+            }
+
+            ThreadPool(int numthreads) : numThreads(numthreads), stop(false) {
+                for (int i = 0; i < numThreads; i++) {
+                    threads.emplace_back(&ThreadPool::processTask, this);
+                }
+            }
+
+            template<typename F>
+            void enqueueTask(F&& task) {
+                {
+                    std::unique_lock<std::mutex> l(m);
+                    tasks.emplace_back(std::forward<F>(task));  // perfect forwarding
+                }
+                cv.notify_one();
+            }
+
+            void terminate() {
+                {
+                    lock_guard<mutex> lk(m);
+                    stop = true;
+                }
+                cv.notify_all();
+                for (auto &thread : threads) {
+                    thread.join();
+                }
+            }
+
+            bool allComplete() {
+                lock_guard<mutex> lk(m);
+                return tasks.empty();
+            }
+
+            ~ThreadPool() {
+                terminate(); // ensures proper cleanup
+            }
+        };
+
+        int main() {
+            int numTasks = 10;
+            int numThreads = 2;
+            ThreadPool tp(numThreads);
+
+            for (int i = 0; i < numTasks; i++) {
+                tp.enqueueTask(
+                        [=]() {
+                            cout << "Task " << i << " completed." << endl;
+                            std::this_thread::sleep_for(std::chrono::seconds(1));
+                        }
+                );
+            }
+
+            cout << "All tasks completed!" << endl;
+        }
+
+
+Object Pool Threading
+    there is a pool of objects and multiple threads are trying to access that pool
+
+scoped_lockOK
+    lock_guard on multiple mutexes
+
+
+Lock Free Stack and Queue
+
+    in lock free stuff we should always recheck if the data
+    has been changed or not, since I didn't lock it means
+    I don't own it which means whenever I load it is always a
+    snapshot and while using it I need to check it again
+
+    Lock Free Queue
+
+    Interviewer might ask:
+        Why do you need a dummy node?
+            A dummy node acts as a sentinel to simplify the logic.
+            It ensures head always points before the first real element,
+            so enqueue and dequeue operations don’t have to handle special
+            cases for empty or single-element queues. It also reduces
+            race conditions and makes the lock-free algorithm cleaner and safer.
+
+
+
+        #include <atomic>
+        #include <memory>
+        #include <iostream>
+
+        template<typename T>
+        struct Node {
+            T data;
+            std::atomic<Node*> next;
+
+            Node() : next(nullptr) {}           // dummy node
+            Node(T val) : data(val), next(nullptr) {}
+        };
+
+        template<typename T>
+        class LockFreeQueue {
+            std::atomic<Node<T>*> head;
+            std::atomic<Node<T>*> tail;
+
+        public:
+            LockFreeQueue() {
+                Node<T>* dummy = new Node<T>();  // initial dummy node
+                head.store(dummy, std::memory_order_relaxed);
+                tail.store(dummy, std::memory_order_relaxed);
+            }
+
+            ~LockFreeQueue() {
+                // Delete remaining nodes safely
+                while (Node<T>* node = head.load()) {
+                    head.store(node->next);
+                    delete node;
+                }
+            }
+
+            void enqueue(T value) {
+                Node<T>* newNode = new Node<T>(value);
+
+                while (true) {
+                    Node<T>* tailSnapshot = tail.load(std::memory_order_acquire);
+                    Node<T>* nextSnapshot = tailSnapshot->next.load(std::memory_order_acquire);
+
+                    // Validate snapshot: tail has not changed
+                    if (tailSnapshot == tail.load(std::memory_order_acquire)) {
+
+                        if (nextSnapshot == nullptr) {
+                            // tailSnapshot is indeed the last node
+                            // CAS inserts newNode at the end
+                            if (tailSnapshot->next.compare_exchange_strong(
+                                    nextSnapshot,
+                                    newNode,
+                                    std::memory_order_release,
+                                    std::memory_order_acquire))
+                            {
+                                // Try to advance tail; okay if fails (another thread advanced it)
+                                tail.compare_exchange_strong(
+                                    tailSnapshot,
+                                    newNode,
+                                    std::memory_order_release,
+                                    std::memory_order_acquire
+                                );
+                                return;
+                            }
+                        } else {
+                            // Tail is lagging behind, help it move forward
+                            // or it might be the case the our snapshot became stale
+                            tail.compare_exchange_strong(
+                                tailSnapshot,
+                                nextSnapshot,
+                                std::memory_order_release,
+                                std::memory_order_acquire
+                            );
+                        }
+                    }
+                }
+            }
+
+            bool dequeue(T& result) {
+                while (true) {
+                    Node<T>* headSnapshot = head.load(std::memory_order_acquire);
+                    Node<T>* firstSnapshot = headSnapshot->next.load(std::memory_order_acquire);
+
+                    // Validate snapshot: head has not changed
+                    if (headSnapshot == head.load(std::memory_order_acquire)) {
+
+                        // If no node exists after head, queue is empty
+                        // No need to reload head->next because if it was nullptr here, it will remain nullptr
+                        // until some enqueue completes, which will be visible in the next iteration
+                        if (firstSnapshot == nullptr) return false;
+
+                        // Attempt to move head forward
+                        if (head.compare_exchange_weak(
+                                headSnapshot,
+                                firstSnapshot,
+                                std::memory_order_acq_rel,   // release old head + acquire new head
+                                std::memory_order_acquire))
+                        {
+                            // Safe to read firstSnapshot->data because we acquired it
+                            result = firstSnapshot->data;
+
+                            // Delete old dummy / old head
+                            delete headSnapshot;
+                            return true;
+                        }
+                    }
+                }
+            }
+        };
+
+
+    Lock Free Stack
+
+        #include <atomic>
+        #include <memory>
+        #include <iostream>
+
+        template<typename T>
+        struct Node {
+            T data;
+            std::atomic<Node*> next;
+
+            Node() : next(nullptr) {}           // dummy node
+            Node(T val) : data(val), next(nullptr) {}
+        };
+
+        template<typename T>
+        class LockFreeStack {
+            std::atomic<Node<T>*> head;
+
+        public:
+            LockFreeStack() {
+                head.store(nullptr, std::memory_order_relaxed);
+            }
+
+            ~LockFreeStack() {
+                // Delete remaining nodes safely
+                while (Node<T>* node = head.load()) {
+                    head.store(node->next);
+                    delete node;
+                }
+            }
+
+            void push(T value) {
+                Node<T>* newNode = new Node<T>(value);
+                while(true) {
+                    Node<T> * headSnapshot = head.load(memory_order_acquire);
+                    newNode->next = headSnapshot;
+
+                    // CAS: set head to newNode if it still equals headSnapshot
+                    if (head.compare_exchange_strong(headSnapshot,
+                                                     newNode,
+                                                     memory_order_release,
+                                                     memory_order_acquire)) {
+                        return;
+                    }
+                    // otherwise retry
+                }
+            }
+
+            bool pop(T& result) {
+                while (true) {
+                    Node<T>* headSnapshot = head.load(std::memory_order_acquire);
+                    Node<T>* nextSnapshot = headSnapshot->next.load(std::memory_order_acquire);
+
+                    if (headSnapshot == nullptr) return false;
+
+                    if (head.compare_exchange_strong(headSnapshot,
+                                                     nextSnapshot,
+                                                     memory_order_release,
+                                                     memory_order_acquire)) {
+                        result->data = headSnapshot;
+                        delete headSnapshot;
+                        return true;
+                    }
+            }
+        };
+
+
+
+
+
+
+
+
+
