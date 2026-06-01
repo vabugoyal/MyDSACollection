@@ -1,0 +1,233 @@
+===============================================================================
+ THE C++ COMPILATION PROCESS  (build time -> run time)
+===============================================================================
+ Context: notes built up while figuring out why C++20 concepts showed red in
+ CLion on a RHEL 8 box. Tools referenced are the ones actually on that machine:
+   - system compiler : /usr/bin/g++           (GCC 8.5 - too old for C++20/23)
+   - newer compilers : /opt/rh/gcc-toolset-NN/...  (GCC 10..14, side-installed)
+   - clang           : /usr/bin/clang++-20    (full sanitizer runtimes present)
+===============================================================================
+
+
+-------------------------------------------------------------------------------
+ 0. TERMINOLOGY  (compiler vs toolchain vs driver)
+-------------------------------------------------------------------------------
+  compiler   : one tool, translates source -> object code (g++, clang++).
+  toolchain  : compiler + linker + assembler + standard library + loader +
+               debugger, all working together.   (compiler is a SUBSET)
+  driver     : the single binary you actually invoke (g++, clang++-20). It does
+               not do all the work itself - it ORCHESTRATES the other tools.
+
+  GCC = "GNU Compiler Collection" (not "C compiler"): bundles g++/gcc/gfortran
+        AND libstdc++ (its C++ standard library). Compiler + library shipped as
+        a matched pair per version.
+
+  gcc-toolset-N = Red Hat packaging that installs a newer GCC alongside the
+        frozen system GCC, under /opt/rh/. Enable per shell:
+            source /opt/rh/gcc-toolset-14/enable
+
+
+-------------------------------------------------------------------------------
+ 1. THE BIG PICTURE  (4 build stages + 1 run stage)
+-------------------------------------------------------------------------------
+
+                        BUILD TIME (once, when you compile)                 RUN TIME
+  +-----------------------------------------------------------------+   +-----------+
+ main.cpp -> [1 PREPROCESS] -> [2 COMPILE] -> [3 ASSEMBLE] -> [4 LINK] -> exe -> [5 LOAD] -> run
+   .cpp         .ii/TU           .s             .o             a.out               process
+             (pure C++)       (assembly)    (machine code)  (executable)
+
+  Stages 1-4 are all orchestrated by the DRIVER (g++ / clang++-20). You type one
+  command; it spawns the rest.
+
+
+-------------------------------------------------------------------------------
+ 2. STAGE BY STAGE
+-------------------------------------------------------------------------------
+
+  +-------------------------------------------------------------------------+
+  | 1. PREPROCESSOR        binary: cc1plus (built-in)   stop here: -E       |
+  |                                                                         |
+  |   main.cpp -> expand #include (paste in <cstdio>, <concepts>, ...)      |
+  |               expand #define macros                                     |
+  |               strip // and /* */ comments                              |
+  |               resolve #if / #ifdef                                      |
+  |   OUT: one self-contained file = a "translation unit" (TU).             |
+  |        30 lines balloon to thousands once headers are pasted in.        |
+  +-------------------------------------------------------------------------+
+                          | TU (pure C++, no directives left)
+                          v
+  +-------------------------------------------------------------------------+
+  | 2. COMPILER (proper)   binary: cc1plus              stop here: -S       |
+  |                                                                         |
+  |   TU -> lex/parse -> AST -> semantic checks (types, overloads,          |
+  |            |                 CONCEPTS)  <-- std::integral checked HERE;  |
+  |            |                 this is where IDE red squiggles come from   |
+  |            v                                                            |
+  |       IR -> optimize (-O1/-O2 ...) -> generate target assembly          |
+  |   OUT: .s  - human-readable x86-64 assembly text                        |
+  +-------------------------------------------------------------------------+
+                          | .s (assembly)
+                          v
+  +-------------------------------------------------------------------------+
+  | 3. ASSEMBLER           binary: as                   stop here: -c       |
+  |                                                                         |
+  |   .s -> encode each instruction into raw machine bytes                  |
+  |         build symbol table: defined (T) + unresolved (U)                |
+  |   OUT: main.o - OBJECT FILE (ELF). Machine code, NOT runnable yet:      |
+  |        calls to printf / std::cout are still holes (U) pointing nowhere.|
+  +-------------------------------------------------------------------------+
+                          | main.o (+ other .o files)
+                          v
+  +-------------------------------------------------------------------------+
+  | 4. LINKER              binary: ld          (LAST build step)            |
+  |                                                                         |
+  |   main.o  --+                                                           |
+  |  other.o  --+--> match every U (use) to a T (definition) across inputs  |
+  | libstdc++ --+    relocate addresses, lay out sections, set entry point  |
+  |   glibc   --+    (dynamic libs: record "I need libX.so", don't copy)    |
+  |   OUT: executable file (ELF) on disk. Lists which .so's it needs at run |
+  |        time. Still NOT running - just a file.                           |
+  +-------------------------------------------------------------------------+
+                          | ./sanitizer_demo   (you launch it later)
+                          v
+  +-------------------------------------------------------------------------+
+  | 5. DYNAMIC LOADER      binary: ld-linux-x86-64.so.2  (part of glibc)    |
+  |                        -- RUN TIME, every launch --                     |
+  |                                                                         |
+  |   kernel maps exe -> loader reads "needs libstdc++.so.6, libc.so.6,..." |
+  |                   -> finds & mmaps each .so into the process            |
+  |                   -> binds remaining symbols (lazy or eager)            |
+  |                   -> runs init code, then jumps to main()               |
+  |   NOW your code executes.                                               |
+  +-------------------------------------------------------------------------+
+
+
+-------------------------------------------------------------------------------
+ 3. FLAGS = "STOP AFTER STAGE N"
+-------------------------------------------------------------------------------
+  g++ main.cpp ...
+        |
+        +- -E    -> stop after PREPROCESS  -> prints the TU
+        +- -S    -> stop after COMPILE     -> writes main.s
+        +- -c    -> stop after ASSEMBLE    -> writes main.o
+        +- (none)-> go through LINK         -> writes the executable
+
+  Walk the pipeline yourself:
+    g++ -std=c++23 -E main.cpp -o main.ii   # 1   -> preprocessed TU
+    g++ -std=c++23 -S main.cpp -o main.s    # 1,2 -> assembly
+    g++ -std=c++23 -c main.cpp -o main.o    # 1,2,3 -> object
+    g++ -std=c++23    main.o   -o prog      # 4   -> link only
+    g++ -###  main.cpp -o prog              # show every sub-process, don't run
+
+
+-------------------------------------------------------------------------------
+ 4. WHERE THE LIBRARIES ENTER  (the part people miss)
+-------------------------------------------------------------------------------
+  COMPILE-TIME view (what the compiler reads):
+     #include <concepts>  -> HEADERS only (declarations + templates + inline)
+     #include <cstdio>    -> declares printf
+
+  LINK / RUN-TIME view (what gets connected):
+     libstdc++.so -> provides std:: out-of-line code
+          | which itself needs
+     libc.so.6 (glibc) -> printf, malloc, write, memcpy ...
+          | which makes
+     Linux kernel syscalls
+
+  Key idea, repeated at every layer:  U = "I need this",  T = "I provide this"
+     your main.o   :  U printf,  U std::cout                 (holes)
+     libstdc++.so  :  T std::cout ... but U malloc, U write  (provides some,
+                                                              needs more)
+     libc.so.6     :  T printf, T malloc, T write            (bottom layer)
+  Linker (build) + loader (run) pair every U with a T. No T for some U =
+  "undefined reference" (build) or "symbol not found" (run).
+
+
+-------------------------------------------------------------------------------
+ 5. SAME PIPELINE, TWO COMPILERS
+-------------------------------------------------------------------------------
+  GCC:   g++  --spawns-->  cc1plus (preproc+compile) --> as (assemble) --> ld
+                           |__ 3 separate external programs __|
+
+  clang: clang++-20 --spawns--> clang-20 -cc1 (preproc+compile+ASSEMBLE) --> ld
+                                |__ 1 program does the first three __|
+
+  - clang++-20 is a SYMLINK to clang-20; the "++" just means "default to C++".
+  - clang++-20 is the DRIVER. It re-invokes itself as `clang-20 -cc1` to do the
+    real compile, then shells out to ld for linking.
+  - clang has an integrated assembler (no separate `as` process); GCC does not.
+  - Both share the SAME conceptual 5 stages.
+
+
+-------------------------------------------------------------------------------
+ 6. TWO DIFFERENT "ld"s  (the classic confusion)
+-------------------------------------------------------------------------------
+                       |  ld (the linker)        |  ld-linux-x86-64.so.2 (loader)
+  ---------------------+-------------------------+-------------------------------
+   When                |  BUILD time             |  RUN time
+   How often           |  once, at compile       |  every launch of the program
+   Input               |  .o files + libraries   |  the finished exe + its .so's
+   Output              |  an executable FILE      |  a running PROCESS in memory
+   Part of             |  binutils / toolchain   |  glibc
+   Job                 |  resolve symbols, WRITE  |  LOAD .so's into memory, then
+                       |  the executable          |  start main()
+
+  Compilation (linker included) FINISHES before the loader ever runs.
+
+
+-------------------------------------------------------------------------------
+ 7. WHERE A SANITIZER BUILD DIFFERS
+-------------------------------------------------------------------------------
+  Build:  clang++-20 -std=c++23 -g -O1 -fno-omit-frame-pointer \
+              -fsanitize=address,undefined -fno-sanitize-recover=all \
+              main.cpp -o build/sanitizer_demo
+
+  -fsanitize=address,undefined touches three stages:
+     [2 COMPILE] -> insert instrumentation: every load/store gets a
+                    shadow-memory check
+     [4 LINK]    -> pull in the sanitizer RUNTIME library
+                    (clang: libclang_rt.asan.a ; gcc: libasan)
+                    -> binary jumps from ~33 KB to ~1.7 MB
+     [5 LOAD]    -> asan runtime init runs FIRST (preinit), sets up shadow
+                    memory, then main() runs; bad access is caught + reported
+
+  Same 5 stages - just extra checks woven into COMPILE and an extra library
+  pulled in at LINK, plus a runtime that wakes up early at LOAD.
+
+  NOTE (this machine): only clang++-20 has the full sanitizer runtimes. The
+  gcc-toolset packages here are missing libasan/libubsan, so g++ -fsanitize=...
+  fails at LINK with "cannot find -lasan / -lubsan". Fix = use clang end-to-end,
+  or install gcc-toolset-NN-lib{asan,ubsan}-devel.
+
+
+-------------------------------------------------------------------------------
+ 8. STANDARD LIBRARY LAYOUT ON DISK (GCC 14)
+-------------------------------------------------------------------------------
+  HEADERS (compiler reads at #include time):
+    /opt/rh/gcc-toolset-14/root/usr/include/c++/14/
+      <top level>   ~116 public "front door" headers (concepts, vector, ...)
+                     mostly THIN shells that forward to bits/
+      bits/         162 files - the REAL implementation (private, don't include)
+      ext/ tr1/ experimental/ debug/ ...  GCC extras / legacy, NOT ISO standard
+
+  COMPILED BINARY (linker pulls in at link time):
+    /opt/rh/gcc-toolset-14/root/usr/lib/gcc/x86_64-redhat-linux/14/
+      libstdc++.a   (static archive)   libstdc++.so   (shared)
+      -> out-of-line code: std::string methods, iostreams, exceptions, locales
+
+  C library underneath (separate project = glibc, tied to the OS, v2.28 here):
+    /lib64/libc.so.6  /lib64/libm.so.6  /lib64/ld-linux-x86-64.so.2
+
+  Stack:  your code -> libstdc++ (C++) -> glibc (C lib + syscalls) -> kernel
+
+
+-------------------------------------------------------------------------------
+ 9. ONE-LINE MENTAL MODEL
+-------------------------------------------------------------------------------
+  preprocess (text) -> compile (C++ -> asm) -> assemble (asm -> object bytes)
+  -> link (stitch objects + libraries into an exe FILE)  [BUILD ENDS]
+  -> load (.so's into memory, start main())              [RUN BEGINS]
+
+  Driver runs 1-4 for you. Loader does 5. Compiler != toolchain.
+===============================================================================
