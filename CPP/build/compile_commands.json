@@ -1,7 +1,7 @@
 [
 {
   "directory": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build",
-  "command": "clang++   -std=gnu++20 -arch arm64 -fcolor-diagnostics -fansi-escape-codes -g --save-temps -O1 -o CMakeFiles/main.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
+  "command": "/usr/bin/c++   -g -std=gnu++20 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined -o CMakeFiles/main.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
   "file": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
   "output": "CMakeFiles/main.dir/main.cpp.o"
 }

@@ -1,5 +1,4 @@
 /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build/CMakeFiles/main.dir
-/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build/CMakeFiles/clean_all.dir
 /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build/CMakeFiles/run.dir
 /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build/CMakeFiles/edit_cache.dir
 /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build/CMakeFiles/rebuild_cache.dir

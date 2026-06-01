@@ -4,36 +4,28 @@ project(main_project LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Set compiler
-set(CMAKE_CXX_COMPILER clang++)
-
-# Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Compiler flags
-add_compile_options(
-    -fcolor-diagnostics
-    -fansi-escape-codes
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+add_executable(main main.cpp)
+
+target_compile_options(main PRIVATE
     -g
-    --save-temps
-    -O1
+    -O3
+    -fno-omit-frame-pointer
+    -fsanitize=address,undefined
 )
 
-# Source files
-set(SRC main.cpp)
-
-# Create executable
-add_executable(main ${SRC})
-
-# Custom target: clean (optional, CMake already provides this)
-add_custom_target(clean_all
-    COMMAND ${CMAKE_COMMAND} -E rm -f main *.o
+target_link_options(main PRIVATE
+    -fsanitize=address,undefined
 )
 
-# Custom target: run
 add_custom_target(run
-    COMMAND main
+    COMMAND ./main
     DEPENDS main
-    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
