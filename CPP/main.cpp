@@ -4,14 +4,14 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
-#include <vector>
+
 
 using namespace std;
 using namespace std::chrono;
 
 
-template<typename Visitor, typename Variant, typename... I> 
-decltype(auto) visit_imp(Visitor && visitor, Variant&& variant, I&&...i) {
+template<typename Visitor, typename Variant, size_t... I> 
+decltype(auto) visit_imp(Visitor && visitor, Variant&& variant, index_sequence<I...>&&i) {
     using Result = decltype(
         forward<Visitor>(visitor)(
             get<0>(forward<Variant>(variant))
