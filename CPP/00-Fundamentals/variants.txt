@@ -57,3 +57,18 @@ decltype(auto) visit_one(Visitor && visitor, Variant&& variant) {
 int main() {
 
 }
+
+
+
+// recursive version
+
+template <size_t I = 0>
+decltype(auto) visit_impl(Visitor&& vis, Variant&& var) {
+    if (var.index() == I)
+        return vis(std::get<I>(var));
+
+    if constexpr (I + 1 < std::variant_size_v<std::remove_reference_t<Variant>>)
+        return visit_impl<I + 1>(
+            std::forward<Visitor>(vis),
+            std::forward<Variant>(var));
+} 

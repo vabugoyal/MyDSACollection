@@ -1,3 +1,39 @@
-BasedOnStyle: Google
+BasedOnStyle: LLVM
+
+Language: Cpp
+Standard: Latest
+
 IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
 ColumnLimit: 100
+
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+NamespaceIndentation: All
+IndentCaseLabels: true
+
+MaxEmptyLinesToKeep: 1
+
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+
+BreakBeforeBraces: Allman
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BinPackArguments: false
+BinPackParameters: false
+
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: Never
+
+IncludeBlocks: Regroup
+SortIncludes: true

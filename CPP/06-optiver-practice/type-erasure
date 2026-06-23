@@ -1,0 +1,36 @@
+class Drawable {
+    struct Concept {
+        virtual void draw() const = 0;
+        virtual std::unique_ptr<Concept> clone() const = 0;
+        virtual ~Concept() = default;
+    };
+
+    template <typename T>
+    struct Model : Concept {
+        T obj;
+
+        template <typename U>
+        Model(U&& obj) : obj(std::forward<U>(obj)) {}
+
+        void draw() const override { obj.draw(); }
+
+        std::unique_ptr<Concept> clone() const override { return std::make_unique<Model<T>>(obj); }
+    };
+
+    std::unique_ptr<Concept> self;
+
+   public:
+    template <typename T>
+    Drawable(T&& obj) : self(std::make_unique<Model<std::decay_t<T>>>(std::forward<T>(obj))) {}
+
+    Drawable(const Drawable& other) : self(other.self ? other.self->clone() : nullptr) {}
+
+    Drawable(Drawable&&) noexcept = default;
+
+    Drawable& operator=(Drawable other) {
+        self.swap(other.self);
+        return *this;
+    }
+
+    void draw() const { self->draw(); }
+};

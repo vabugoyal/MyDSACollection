@@ -2,6 +2,7 @@
   "C_Cpp.intelliSenseEngine": "disabled",
   "clangd.arguments": [
     "--background-index",
+    "--query-driver=/usr/bin/g++,/usr/bin/clang++,/usr/bin/clang",
     "--compile-commands-dir=build"
   ],
     "[cpp]": {

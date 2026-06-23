@@ -1,0 +1,91 @@
+template<typename T>
+class myOptional {
+    bool isNull = true;
+    alignas(T) unsigned char storage[sizeof(T)];
+
+    T* ptr() {
+        return reinterpret_cast<T*>(storage);
+    }
+
+    const T* ptr() const {
+        return reinterpret_cast<const T*>(storage);
+    }
+    
+    public :
+    
+    myOptional(const T& val) {
+        new (storage) T(val);
+        isNull = false;
+    }
+
+    myOptional(T&& val) {
+        new (storage) T(std::move(val));
+        isNull = false;
+    }
+
+    myOptional() : isNull(true) {}
+
+    // inplace construction of value 
+    template<typename... Args>
+    void emplace(Args&&... args) {
+        reset();
+        new (storage) T(std::forward<Args>(args)...);
+        isNull = false;
+    }
+
+    // to reset optional to null 
+    void reset() {
+        if (!isNull) {
+            ptr()->~T();
+            isNull = true;
+        }
+    }
+
+    // get ref
+    T& get() {
+        return *ptr();
+    }
+
+    // get const ref
+    const T& get() const {
+        return *ptr();
+    }
+
+    // tell if optional has value 
+    explicit operator bool() const {
+        return !isNull;
+    }
+
+    // convert optional into T&
+    operator T&(){
+        return *ptr();
+    }
+
+    operator const T&() const {
+        return *ptr();
+    }
+
+    // dereference operator 
+    T& operator *() {
+        return *ptr();
+    }
+
+    T& operator *() const{
+        return *ptr();
+    }
+
+    // returns the pointer to value 
+    T * operator->() {
+        return ptr();
+    }
+
+    T * operator->() const {
+        return ptr();
+    }
+
+    ~myOptional() {
+        if (!isNull) {
+            ptr()->~T();
+        }
+    }
+};

@@ -4,14 +4,20 @@ project(main_project LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+find_package(Boost REQUIRED)
+
 add_executable(main main.cpp)
+
+target_include_directories(main PRIVATE
+    ${Boost_INCLUDE_DIRS}
+)
 
 target_compile_options(main PRIVATE
     -g

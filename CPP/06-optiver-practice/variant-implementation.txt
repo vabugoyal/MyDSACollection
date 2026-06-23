@@ -1,0 +1,41 @@
+template <typename... Ts>
+class MyVariant {
+    constexpr static size_t maxSize = sizeof...(Ts) ? std::max({sizeof(Ts)...}) : 0;
+
+    constexpr static size_t totalTypes =
+        sizeof...(Ts);  // way to get the number of types in the template
+
+    alignas(std::max_align_t) unsigned char storage[maxSize];
+    size_t index;
+
+    template <typename U, std::size_t I, typename First, typename... Rest>
+    static constexpr std::size_t index_of_impl() {
+        if constexpr (std::is_same_v<U, First>) {
+            return I;
+        } else if constexpr (sizeof...(Rest) == 0) {
+            return totalTypes;  // not found sentinel
+        } else {
+            return index_of_impl<U, I + 1, Rest...>();
+        }
+    }
+
+   public:
+    template <typename U>
+    static constexpr std::size_t index_of() {
+        return index_of_impl<U, 0, Ts...>();
+    }
+
+    template <typename U>
+    MyVariant(U&& value) {
+        constexpr size_t currIndex = index_of<U>();
+
+        static_assert((std::is_same_v<U, Ts> || ...), "Type not in variant");
+
+        index = currIndex;
+        new (storage) U(std::forward<U>(value));
+    }
+
+    // move constructor
+    // copy constructor
+    // can have emplace
+};

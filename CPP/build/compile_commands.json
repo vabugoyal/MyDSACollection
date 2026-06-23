@@ -1,7 +1,7 @@
 [
 {
   "directory": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/build",
-  "command": "/usr/bin/c++   -g -std=gnu++20 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined -o CMakeFiles/main.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
+  "command": "/usr/bin/c++  -I/opt/homebrew/include -g -std=gnu++23 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined -o CMakeFiles/main.dir/main.cpp.o -c /Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
   "file": "/Users/vaibhavgoyal/Documents/learn/cpp/MyDSACollection/CPP/main.cpp",
   "output": "CMakeFiles/main.dir/main.cpp.o"
 }

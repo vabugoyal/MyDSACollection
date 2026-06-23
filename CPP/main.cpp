@@ -1,59 +1,22 @@
-#include <chrono>
-#include <format>
+#include "string"
+#include "vector"
+
+#include <algorithm>
+#include <cctype>
 #include <iostream>
-#include <type_traits>
+#include <ranges>
+#include <string>
+#include <tuple>
 #include <utility>
-#include <variant>
 
-
-using namespace std;
-using namespace std::chrono;
-
-
-template<typename Visitor, typename Variant, size_t... I> 
-decltype(auto) visit_imp(Visitor && visitor, Variant&& variant, index_sequence<I...>&&i) {
-    using Result = decltype(
-        forward<Visitor>(visitor)(
-            get<0>(forward<Variant>(variant))
-        )
-    );
-
-    using FunctionPtr = Result (*)(Visitor&&, Variant&&);
-
-    static constexpr FunctionPtr table[] = {
-        [](Visitor&& visitor, Variant&& variant) -> Result {
-            return forward<Visitor>(visitor)(
-                std::get<I>(forward<Variant>(variant)));
-        }...
-    };
-
-    if (variant.valueless_by_exception()) {
-        throw std::bad_variant_access{};
-    }
-
-    return table[variant.index()](
-        forward<Visitor>(visitor),
-        forward<Variant>(variant)
-    );
-}
-
-
-template<typename Visitor, typename Variant> 
-decltype(auto) visit_one(Visitor && visitor, Variant&& variant) {
-    using VariantType = remove_reference_t<Variant>;
-
-    constexpr std::size_t size = std::variant_size_v<VariantType>;
-
-    return visit_impl(
-        std::forward(visitor),
-        std::forward(variant),
-        std::make_index_sequence<size>{}
-    );
-}
-
-
+#include <iostream>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 
 int main() {
+    using namespace boost::gregorian;
 
+    date d(2026, 6, 24);
+
+    std::cout << "Date: " << to_simple_string(d) << "\n";
 }

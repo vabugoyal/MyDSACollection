@@ -4,9 +4,9 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/opt/homebrew/include
 
-CXX_FLAGSarm64 = -g -std=gnu++20 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined
+CXX_FLAGSarm64 = -g -std=gnu++23 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined
 
-CXX_FLAGS = -g -std=gnu++20 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined
+CXX_FLAGS = -g -std=gnu++23 -arch arm64 -g -O3 -fno-omit-frame-pointer -fsanitize=address,undefined
 
