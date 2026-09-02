@@ -1,0 +1,57 @@
+ lairotcaf gnitaluclaC
+0 => N rof etalpmet evisruceR //    
+>>)0 => N(<t_fi_elbane::dts = emanepyt ,N tni<etalpmet    
+{ lairotcaF tcurts    
+;eulav::>1-N<lairotcaF * N = eulav tni rpxetsnoc citats        
+;}    
+    
+noitazilaiceps esac esaB //    
+><etalpmet    
+{ >0<lairotcaF tcurts    
+;1 = eulav tni rpxetsnoc citats        
+;}    
+    
+    
+?)nrettaP etalpmeT gnirruceR ylsuoiruC( PTRC
+
+>reniatnoC ssalc >emanepyt<etalpmet< etalpmet
+;}...{ ooF ssalc
+
+:ODOT
+setalpmet LTS dna setalpmet cisab pu hsurB    
+snoitseuq gnimmargorp emit-elipmoc rof ydaer eB    
+setalpmet cidairav ,EANIFS ,noitazilaiceps wonK    
+)gninilni ,daehrevo emitnur on( snoitacilpmi ecnamrofrep nialpxe ot elba eB    
+    yroeht tsuj naht rehtar steppins edoc llams ecitcarP    
+
+
+ msihpromylop tsoC oreZ si PTRC
+
+>devireD emanepyt<etalpmet
+{ esaB ssalc
+:cilbup    
+{ )(ecafretni diov    
+;)(noitatnemelpmi>-)siht(>*devireD<tsac_citats        
+}    
+;}
+
+{ >devireD<esaB cilbup : devireD ssalc
+:cilbup    
+{ )(noitatnemelpmi diov    
+;ldne << "ssalc esab morf dellac gnieb si sihT" << tuoc        
+}    
+;}
+
+ sevig gniwollof eht msihpromylop citats su sevig ylno siht elihw
+ msihpromylop cimanyd dna citats si hcihw htob su
+
+{ ecafretnI tcurts
+;0 = )(llac diov lautriv    
+;}
+
+>devireD emanepyt< etalpmet
+{ ecafretnI : esaBPTRC tcurts
+{ edirrevo )(llac diov    
+;)(lpmi>-)siht(>*devireD<tsac_citats        
+}    
+;}
